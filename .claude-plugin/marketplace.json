@@ -1,0 +1,24 @@
+{
+  "name": "travis-plugins",
+  "owner": {
+    "name": "Travis"
+  },
+  "metadata": {
+    "description": "Travis's Claude Code plugin marketplace - code quality, productivity, and development tools",
+    "version": "1.0.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "coderabbit",
+      "source": "coderabbit",
+      "description": "CodeRabbit integration - local code review and PR comment management using CodeRabbit CLI",
+      "version": "1.0.0",
+      "author": {
+        "name": "Travis"
+      },
+      "keywords": ["code-review", "coderabbit", "pr-comments", "code-quality"],
+      "category": "code-quality"
+    }
+  ]
+}

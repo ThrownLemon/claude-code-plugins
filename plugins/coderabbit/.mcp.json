@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "coderabbitai": {
+      "command": "npx",
+      "args": ["@coderabbitai/mcp-server"],
+      "env": {}
+    }
+  }
+}

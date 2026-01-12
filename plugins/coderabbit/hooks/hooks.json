@@ -1,0 +1,24 @@
+{
+  "PostToolUse": [
+    {
+      "matcher": "Edit|Write",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "${CLAUDE_PLUGIN_ROOT}/scripts/notify-review-available.sh"
+        }
+      ]
+    }
+  ],
+  "SubagentStop": [
+    {
+      "matcher": "cr-reviewer",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "${CLAUDE_PLUGIN_ROOT}/scripts/log-review-complete.sh"
+        }
+      ]
+    }
+  ]
+}
