@@ -2,6 +2,7 @@
 """Fork a new terminal window with a command.
 
 Cross-platform terminal spawner for macOS and Windows.
+Supports Terminal.app and Warp on macOS.
 """
 
 import os
@@ -11,11 +12,12 @@ import subprocess
 import sys
 
 
-def fork_terminal(command: str) -> str:
-    """Open a new Terminal window and run the specified command.
+def fork_terminal(command: str, terminal: str = None) -> str:
+    """Open a new terminal window and run the specified command.
 
     Args:
         command: The command to execute in the new terminal window
+        terminal: Terminal to use - "warp", "terminal", or auto-detect (default)
 
     Returns:
         Status message indicating success or failure
@@ -23,23 +25,67 @@ def fork_terminal(command: str) -> str:
     system = platform.system()
     cwd = os.getcwd()
 
+    # Auto-detect terminal preference from env var, default to "warp" if installed
+    if terminal is None:
+        terminal = os.environ.get("FORK_TERMINAL", "auto")
+
+    if terminal == "auto":
+        # Check if Warp is installed
+        warp_check = subprocess.run(
+            ["osascript", "-e", 'tell application "System Events" to exists application process "Warp"'],
+            capture_output=True, text=True
+        )
+        # Also check if Warp app exists
+        warp_exists = os.path.exists("/Applications/Warp.app")
+        terminal = "warp" if warp_exists else "terminal"
+
     if system == "Darwin":  # macOS
-        # Use shlex.quote to safely escape the directory path
         safe_cwd = shlex.quote(cwd)
         shell_command = f"cd {safe_cwd} && {command}"
-        # Escape for AppleScript: backslashes first, then quotes
-        escaped_shell_command = shell_command.replace("\\", "\\\\").replace('"', '\\"')
 
-        try:
-            result = subprocess.run(
-                ["osascript", "-e", f'tell application "Terminal" to do script "{escaped_shell_command}"'],
-                capture_output=True,
-                text=True,
-            )
-            output = f"stdout: {result.stdout.strip()}\nstderr: {result.stderr.strip()}\nreturn_code: {result.returncode}"
-            return output
-        except (OSError, subprocess.SubprocessError) as e:
-            return f"Error: {str(e)}"
+        if terminal == "warp":
+            try:
+                # Warp doesn't support command execution via URL scheme
+                # Use AppleScript to open new tab and type command
+                # Escape for AppleScript string
+                escaped_cmd = shell_command.replace("\\", "\\\\").replace('"', '\\"')
+                applescript = f'''
+                    tell application "Warp" to activate
+                    delay 0.5
+                    tell application "System Events"
+                        tell process "Warp"
+                            keystroke "t" using command down
+                            delay 0.5
+                            keystroke "{escaped_cmd}"
+                            delay 0.3
+                            keystroke return
+                        end tell
+                    end tell
+                '''
+                result = subprocess.run(
+                    ["osascript", "-e", applescript],
+                    capture_output=True,
+                    text=True,
+                )
+                if result.returncode == 0:
+                    return "Warp terminal launched"
+                else:
+                    return f"Warp error: {result.stderr.strip()}"
+            except (OSError, subprocess.SubprocessError) as e:
+                return f"Error: {str(e)}"
+        else:
+            # Default: Terminal.app
+            escaped_shell_command = shell_command.replace("\\", "\\\\").replace('"', '\\"')
+            try:
+                result = subprocess.run(
+                    ["osascript", "-e", f'tell application "Terminal" to do script "{escaped_shell_command}"'],
+                    capture_output=True,
+                    text=True,
+                )
+                output = f"stdout: {result.stdout.strip()}\nstderr: {result.stderr.strip()}\nreturn_code: {result.returncode}"
+                return output
+            except (OSError, subprocess.SubprocessError) as e:
+                return f"Error: {str(e)}"
 
     elif system == "Windows":
         # Escape double quotes and backslashes in path for Windows cmd
@@ -58,10 +104,14 @@ def fork_terminal(command: str) -> str:
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        # Use shlex.join to properly handle arguments with spaces/quotes
-        output = fork_terminal(shlex.join(sys.argv[1:]))
+        # Join arguments with space - the command should be passed as a single quoted arg
+        # e.g., fork_terminal.py "echo 'hello world'"
+        output = fork_terminal(" ".join(sys.argv[1:]))
         print(output)
     else:
         print("Usage: fork_terminal.py <command>")
         print("Example: fork_terminal.py 'claude --model opus'")
+        print("")
+        print("Environment variables:")
+        print("  FORK_TERMINAL=warp|terminal|auto  (default: auto)")
         sys.exit(1)
