@@ -26,6 +26,16 @@
       },
       "source": "./plugins/damage-control",
       "category": "security"
+    },
+    {
+      "name": "fork-terminal",
+      "description": "Fork terminal sessions to spawn parallel AI agents (Claude Code, Codex CLI, Gemini CLI) or raw CLI commands in new windows",
+      "version": "1.0.0",
+      "author": {
+        "name": "ThrownLemon (adapted from disler/fork-repository-skill)"
+      },
+      "source": "./plugins/fork-terminal",
+      "category": "productivity"
     }
   ]
 }

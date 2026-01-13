@@ -22,6 +22,7 @@ Then install individual plugins:
 |--------|-------------|----------|
 | [coderabbit](./plugins/coderabbit/) | CodeRabbit integration - local code review and PR comment management | `/coderabbit:local`, `/coderabbit:pr`, `/coderabbit:auth`, `/coderabbit:config` |
 | [damage-control](./plugins/damage-control/) | Security protection - blocks dangerous commands and protects sensitive files | (hooks only) |
+| [fork-terminal](./plugins/fork-terminal/) | Fork terminal sessions to spawn parallel AI agents or CLI commands | (skill auto-triggered) |
 
 ## Plugin Details
 
@@ -61,6 +62,35 @@ Defense-in-depth security protection using PreToolUse hooks. Adapted from [disle
 
 **Prerequisites:**
 - [uv](https://docs.astral.sh/uv/) (Python package runner)
+
+### Fork Terminal
+
+Spawn parallel AI agents or CLI commands in new terminal windows. Adapted from [disler/fork-repository-skill](https://github.com/disler/fork-repository-skill).
+
+**Features:**
+- Fork terminal sessions with Claude Code, Codex CLI, or Gemini CLI
+- Run raw CLI commands in separate terminal windows
+- Model modifiers: "fast" for lighter models, "heavy" for most capable
+- Context handoff with conversation summaries
+- Cross-platform: macOS and Windows
+
+**Installation:**
+```
+/plugin install fork-terminal@travis-plugins
+```
+
+**Supported Tools:**
+| Tool | Trigger | Default Model |
+|------|---------|---------------|
+| Claude Code | "fork terminal use claude code..." | opus |
+| Codex CLI | "fork terminal use codex..." | gpt-5.1-codex-max |
+| Gemini CLI | "fork terminal use gemini..." | gemini-3-pro-preview |
+| Raw CLI | "fork terminal run..." | N/A |
+
+**Example Triggers:**
+- "Fork terminal use claude code to refactor the auth module"
+- "Fork terminal use codex fast to write tests"
+- "Fork terminal run npm start"
 
 ## Adding New Plugins
 
