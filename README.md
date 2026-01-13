@@ -21,6 +21,7 @@ Then install individual plugins:
 | Plugin | Description | Commands |
 |--------|-------------|----------|
 | [coderabbit](./plugins/coderabbit/) | CodeRabbit integration - local code review and PR comment management | `/coderabbit:local`, `/coderabbit:pr`, `/coderabbit:auth`, `/coderabbit:config` |
+| [damage-control](./plugins/damage-control/) | Security protection - blocks dangerous commands and protects sensitive files | (hooks only) |
 
 ## Plugin Details
 
@@ -41,6 +42,25 @@ AI-powered code review integration using the CodeRabbit CLI.
 
 **Prerequisites:**
 - [CodeRabbit CLI](https://docs.coderabbit.ai/cli/overview)
+
+### Damage Control
+
+Defense-in-depth security protection using PreToolUse hooks. Adapted from [disler/claude-code-damage-control](https://github.com/disler/claude-code-damage-control).
+
+**Features:**
+- Blocks dangerous bash commands (rm -rf, git push --force, DROP TABLE, etc.)
+- Protects sensitive files (.env, ~/.ssh/, credentials, API keys)
+- Three protection tiers: zero-access, read-only, no-delete
+- Ask patterns for confirmation on risky-but-valid operations
+- 100+ dangerous command patterns out of the box
+
+**Installation:**
+```
+/plugin install damage-control@travis-plugins
+```
+
+**Prerequisites:**
+- [uv](https://docs.astral.sh/uv/) (Python package runner)
 
 ## Adding New Plugins
 
