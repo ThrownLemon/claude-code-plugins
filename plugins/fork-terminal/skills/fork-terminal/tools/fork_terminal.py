@@ -57,7 +57,7 @@ def fork_terminal(command: str, terminal: str = None) -> str:
                             keystroke "t" using command down
                             delay 0.5
                             keystroke "{escaped_cmd}"
-                            delay 0.3
+                            delay 0.8
                             keystroke return
                         end tell
                     end tell
