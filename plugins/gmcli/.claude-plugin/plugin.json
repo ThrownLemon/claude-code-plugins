@@ -1,0 +1,8 @@
+{
+  "name": "gmcli",
+  "description": "Gmail CLI integration for Claude Code - search, read, send, and manage emails from the terminal",
+  "version": "1.0.0",
+  "author": {
+    "name": "ThrownLemon"
+  }
+}

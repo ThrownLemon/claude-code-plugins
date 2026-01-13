@@ -46,6 +46,26 @@
       },
       "source": "./plugins/imagegen",
       "category": "creative"
+    },
+    {
+      "name": "ui-ux-pro-max",
+      "description": "UI/UX design intelligence - 57 styles, 96 color palettes, 50 font pairings, 25 chart types, 11 tech stacks. Searchable database of design best practices.",
+      "version": "1.0.0",
+      "author": {
+        "name": "ThrownLemon (adapted from nextlevelbuilder/ui-ux-pro-max-skill)"
+      },
+      "source": "./plugins/ui-ux-pro-max",
+      "category": "design"
+    },
+    {
+      "name": "gmcli",
+      "description": "Gmail CLI integration - search, read, send, and manage emails from the terminal using gmcli",
+      "version": "1.0.0",
+      "author": {
+        "name": "ThrownLemon"
+      },
+      "source": "./plugins/gmcli",
+      "category": "productivity"
     }
   ]
 }

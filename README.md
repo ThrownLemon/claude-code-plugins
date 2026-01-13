@@ -23,6 +23,9 @@ Then install individual plugins:
 | [coderabbit](./plugins/coderabbit/) | CodeRabbit integration - local code review and PR comment management | `/coderabbit:local`, `/coderabbit:pr`, `/coderabbit:auth`, `/coderabbit:config` |
 | [damage-control](./plugins/damage-control/) | Security protection - blocks dangerous commands and protects sensitive files | (hooks only) |
 | [fork-terminal](./plugins/fork-terminal/) | Fork terminal sessions to spawn parallel AI agents or CLI commands | (skill auto-triggered) |
+| [imagegen](./plugins/imagegen/) | AI image generation using Google Gemini and OpenAI GPT-Image | `/imagegen:generate`, `/imagegen:edit`, `/imagegen:iterate` |
+| [ui-ux-pro-max](./plugins/ui-ux-pro-max/) | UI/UX design intelligence - 57 styles, 96 palettes, 50 fonts, 25 charts, 11 stacks | (skill auto-triggered) |
+| [gmcli](./plugins/gmcli/) | Gmail CLI integration - search, read, send, and manage emails | `/gmcli:search`, `/gmcli:read`, `/gmcli:send` |
 
 ## Plugin Details
 
@@ -91,6 +94,71 @@ Spawn parallel AI agents or CLI commands in new terminal windows. Adapted from [
 - "Fork terminal use claude code to refactor the auth module"
 - "Fork terminal use codex fast to write tests"
 - "Fork terminal run npm start"
+
+### ImageGen
+
+AI-powered image generation using Google Gemini (Imagen) and OpenAI GPT-Image.
+
+**Features:**
+- Generate images from text prompts
+- Edit and iterate on existing images
+- Create project assets (icons, favicons, social images)
+- Generate moodboards and character sheets
+- Compare providers side-by-side
+
+**Installation:**
+```
+/plugin install imagegen@travis-plugins
+```
+
+**Prerequisites:**
+- Python 3.x with `google-genai`, `openai`, `Pillow`
+- `GEMINI_API_KEY` or `GOOGLE_API_KEY` for Google
+- `OPENAI_API_KEY` for OpenAI
+
+### UI/UX Pro Max
+
+Searchable database of UI/UX design intelligence. Adapted from [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill).
+
+**Features:**
+- 57 UI styles (glassmorphism, neumorphism, brutalism, etc.)
+- 96 color palettes by product type
+- 50 font pairings with Google Fonts imports
+- 25 chart type recommendations
+- 99 UX guidelines and anti-patterns
+- 11 tech stack best practices (React, Next.js, Vue, Tailwind, etc.)
+
+**Installation:**
+```
+/plugin install ui-ux-pro-max@travis-plugins
+```
+
+**Example Triggers:**
+- "Design a SaaS landing page"
+- "What color palette for healthcare?"
+- "Font pairing for luxury brand"
+- "Tailwind best practices for responsive"
+
+**Prerequisites:**
+- Python 3.x (for search scripts)
+
+### Gmail CLI
+
+Gmail integration using gmcli for terminal-based email management.
+
+**Features:**
+- Search emails with Gmail query syntax
+- Read individual messages and threads
+- Send emails with attachments
+- Manage labels and drafts
+
+**Installation:**
+```
+/plugin install gmcli@travis-plugins
+```
+
+**Prerequisites:**
+- [gmcli](https://github.com/jrstrunk/gmcli) installed and authenticated
 
 ## Adding New Plugins
 
