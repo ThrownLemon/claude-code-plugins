@@ -1,9 +1,8 @@
 {
   "name": "coderabbit",
-  "version": "1.0.0",
   "description": "CodeRabbit integration for Claude Code - local code review and PR comment management",
+  "version": "1.0.0",
   "author": {
     "name": "Travis"
-  },
-  "keywords": ["code-review", "coderabbit", "pr-comments", "code-quality"]
+  }
 }
