@@ -1,4 +1,4 @@
-# Travis's Claude Code Plugin Marketplace
+# ThrownLemon's Claude Code Plugin Marketplace
 
 A collection of Claude Code plugins for code quality, productivity, and development tools.
 

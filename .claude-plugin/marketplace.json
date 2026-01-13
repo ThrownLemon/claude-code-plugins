@@ -2,9 +2,9 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "travis-plugins",
   "version": "1.0.0",
-  "description": "Travis's Claude Code plugin marketplace - code quality, productivity, and development tools",
+  "description": "ThrownLemon's Claude Code plugin marketplace - code quality, productivity, and development tools",
   "owner": {
-    "name": "Travis"
+    "name": "ThrownLemon"
   },
   "plugins": [
     {
@@ -12,7 +12,7 @@
       "description": "CodeRabbit integration - local code review and PR comment management using CodeRabbit CLI",
       "version": "1.0.0",
       "author": {
-        "name": "Travis"
+        "name": "ThrownLemon"
       },
       "source": "./plugins/coderabbit",
       "category": "productivity"
