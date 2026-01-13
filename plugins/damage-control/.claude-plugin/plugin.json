@@ -1,0 +1,6 @@
+{
+  "name": "damage-control",
+  "version": "1.0.0",
+  "description": "Security protection for Claude Code - blocks dangerous commands and protects sensitive files via PreToolUse hooks",
+  "author": "ThrownLemon (adapted from disler/claude-code-damage-control)"
+}

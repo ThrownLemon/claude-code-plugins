@@ -16,6 +16,16 @@
       },
       "source": "./plugins/coderabbit",
       "category": "productivity"
+    },
+    {
+      "name": "damage-control",
+      "description": "Security protection - blocks dangerous commands and protects sensitive files via PreToolUse hooks",
+      "version": "1.0.0",
+      "author": {
+        "name": "ThrownLemon (adapted from disler/claude-code-damage-control)"
+      },
+      "source": "./plugins/damage-control",
+      "category": "security"
     }
   ]
 }
