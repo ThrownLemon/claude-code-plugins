@@ -35,6 +35,7 @@ source ~/.zshrc  # or ~/.bashrc
 | `/coderabbit:pr` | View and manage all PR review comments |
 | `/coderabbit:auth` | Authenticate with CodeRabbit CLI |
 | `/coderabbit:config` | Configure plugin preferences |
+| `/coderabbit:log` | View review history and statistics |
 
 ## Usage
 
@@ -83,6 +84,57 @@ Set up authentication with CodeRabbit CLI. Guides you through the browser-based 
 
 View and modify plugin settings.
 
+### Review History
+
+```
+/coderabbit:log
+```
+
+View your review session history.
+
+**Options:**
+- `--action show` - Show recent reviews (default)
+- `--action stats` - Show review statistics
+- `--action clear` - Clear review history
+- `--limit <n>` - Number of entries to show
+
+**Example output:**
+
+```
+# /coderabbit:log --action show --limit 3
+2026-01-13T10:30:00 | dir=/path/to/project | CodeRabbit review completed
+2026-01-12T15:45:00 | dir=/path/to/project | CodeRabbit review completed
+2026-01-12T09:20:00 | dir=/path/to/other | CodeRabbit review completed
+
+# /coderabbit:log --action stats
+Total reviews: 12
+This week: 5
+Average per day: 1.7
+
+# /coderabbit:log --action clear
+Review history cleared.
+```
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `CODERABBIT_HINT_FREQUENCY` | Show review hint every N edits (0 to disable) | `5` |
+| `CODERABBIT_LOG_FILE` | Custom path for review log | `~/.claude/coderabbit-reviews.log` |
+
+> **Note:** The log directory (`~/.claude/` by default) is created automatically by the plugin if it doesn't exist.
+
+Example:
+```bash
+# Disable review hints
+export CODERABBIT_HINT_FREQUENCY=0
+
+# Show hint after every edit
+export CODERABBIT_HINT_FREQUENCY=1
+```
+
 ## Features
 
 ### Review Loop Workflow
@@ -129,10 +181,12 @@ This plugin includes two custom subagents:
 
 Model-invoked skills for automatic delegation:
 
-| Skill | Triggers |
-|-------|----------|
-| `cr-local` | "review my code", "check my changes" |
-| `cr-pr` | "pr comments", "review feedback" |
+| Skill | Example Triggers |
+|-------|------------------|
+| `cr-local` | "review my code", "check my changes", "analyze my code", "find bugs", "quality check" |
+| `cr-pr` | "pr comments", "review feedback", "fix pr feedback", "show pr reviews" |
+
+Skills are triggered automatically when you use natural language — any of the example triggers above will invoke the corresponding skill without needing a slash command.
 
 ## Hooks (Optional)
 

@@ -49,7 +49,19 @@ To auto-detect base branch:
 git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@'
 ```
 
-If that fails, try common defaults: `main`, `master`
+If that fails, check for main or master (prefer main):
+
+```bash
+# Check origin/main first, fall back to origin/master, error if neither exists
+if git rev-parse --verify origin/main >/dev/null 2>&1; then
+    echo "main"
+elif git rev-parse --verify origin/master >/dev/null 2>&1; then
+    echo "master"
+else
+    echo "ERROR: No origin/main or origin/master found" >&2
+    exit 1
+fi
+```
 
 ### Step 3: Run Code Review
 

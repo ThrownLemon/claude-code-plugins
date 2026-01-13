@@ -12,7 +12,7 @@
   ],
   "SubagentStop": [
     {
-      "matcher": "cr-reviewer",
+      "matcher": "coderabbit:cr-reviewer",
       "hooks": [
         {
           "type": "command",

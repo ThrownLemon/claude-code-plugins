@@ -5,6 +5,5 @@
   "author": {
     "name": "Travis"
   },
-  "keywords": ["code-review", "coderabbit", "pr-comments", "code-quality"],
-  "category": "code-quality"
+  "keywords": ["code-review", "coderabbit", "pr-comments", "code-quality"]
 }

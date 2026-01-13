@@ -9,6 +9,12 @@ triggers:
   - "pr review comments"
   - "unresolved comments"
   - "review comments on my pr"
+  - "fix pr feedback"
+  - "what feedback on my pr"
+  - "show pr reviews"
+  - "pending review comments"
+  - "resolve review comments"
+  - "check my pr"
 ---
 
 # PR Review Comment Management

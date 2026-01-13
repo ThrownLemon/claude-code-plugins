@@ -7,7 +7,7 @@ A collection of Claude Code plugins for code quality, productivity, and developm
 Add this marketplace to Claude Code:
 
 ```
-/plugin marketplace add github:ThrownLemon/claude-code-plugins
+/plugin marketplace add ThrownLemon/claude-code-plugins
 ```
 
 Then install individual plugins:

@@ -8,6 +8,13 @@ triggers:
   - "code review locally"
   - "review before commit"
   - "run code review"
+  - "analyze my code"
+  - "find bugs in my code"
+  - "quality check"
+  - "check for issues"
+  - "review what I wrote"
+  - "any problems with my code"
+  - "scan my changes"
 ---
 
 # Local Code Review with CodeRabbit CLI
