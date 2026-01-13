@@ -36,6 +36,16 @@
       },
       "source": "./plugins/fork-terminal",
       "category": "productivity"
+    },
+    {
+      "name": "imagegen",
+      "description": "AI image generation using Google Gemini (Imagen) and OpenAI GPT-Image - generate, edit, iterate, moodboards, character sheets, and project assets",
+      "version": "1.0.0",
+      "author": {
+        "name": "ThrownLemon"
+      },
+      "source": "./plugins/imagegen",
+      "category": "creative"
     }
   ]
 }

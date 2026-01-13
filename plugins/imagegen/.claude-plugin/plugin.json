@@ -1,0 +1,8 @@
+{
+  "name": "imagegen",
+  "description": "AI image generation using Google Gemini (Gemini) and OpenAI GPT-Image - generate, edit, iterate, and create assets",
+  "version": "1.0.0",
+  "author": {
+    "name": "ThrownLemon"
+  }
+}
