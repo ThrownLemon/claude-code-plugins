@@ -60,14 +60,17 @@ Use the `cr-reviewer` subagent to perform the review. Pass the arguments:
 
 ### Hooks with Plugin Root
 
-Hooks use `${CLAUDE_PLUGIN_ROOT}` to reference scripts relative to the plugin directory:
+Hooks use `${CLAUDE_PLUGIN_ROOT}` to reference scripts relative to the plugin directory. Plugin hooks require a `hooks` wrapper (unlike settings.json):
 
 ```json
 {
-  "PostToolUse": [{
-    "matcher": "Edit|Write",
-    "hooks": [{"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/scripts/script.sh"}]
-  }]
+  "description": "Description of hooks",
+  "hooks": {
+    "PostToolUse": [{
+      "matcher": "Edit|Write",
+      "hooks": [{"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/scripts/script.sh"}]
+    }]
+  }
 }
 ```
 
