@@ -30,6 +30,11 @@ def detect_terminal_env() -> str:
     Returns:
         One of: "tmux_attached", "tmux_available", "window"
     """
+    # Check if we're in Warp terminal (doesn't support tmux)
+    term_program = os.environ.get("TERM_PROGRAM", "")
+    if term_program == "WarpTerminal":
+        return "window"  # Warp doesn't support tmux, use window mode
+
     # Check if tmux is installed
     tmux_check = subprocess.run(
         ["which", "tmux"],
