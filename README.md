@@ -237,6 +237,15 @@ Spawn parallel AI agents or CLI commands in new terminal windows. Now with **git
 | **Standard** | Quick parallel help on current task | No - same directory |
 | **Worktree** | Parallel feature development | Yes - separate branches |
 
+**Execution Modes (Worktree):**
+
+When spawning worktree workers, you'll be prompted to choose:
+
+| Mode | Behavior |
+|------|----------|
+| **Interactive** (Recommended) | Worker stays open for follow-up questions and manual oversight |
+| **Autonomous** | Worker runs the task and exits when done (fire-and-forget) |
+
 **Supported AI Tools:**
 
 | Tool | Trigger Pattern | Default Model | Fast Model | Heavy Model |
@@ -251,9 +260,17 @@ Spawn parallel AI agents or CLI commands in new terminal windows. Now with **git
 - **heavy**: Use most capable models for complex tasks
 
 **Platform Support:**
-- macOS: Fully supported (AppleScript + tmux)
+- macOS: Fully supported (Warp, Terminal.app, tmux)
 - Windows: Fully supported (cmd.exe)
 - Linux: Not yet implemented
+
+**Terminal Support (macOS):**
+
+| Terminal | Support Level |
+|----------|--------------|
+| **Warp** | Full automation (opens new tab, pastes and executes) |
+| **Terminal.app** | Full automation via AppleScript |
+| **tmux** | Creates new windows/sessions (when inside tmux) |
 
 **Example Triggers (Standard Mode):**
 ```
@@ -266,18 +283,20 @@ Spawn parallel AI agents or CLI commands in new terminal windows. Now with **git
 ```
 > Spawn worktree to implement user authentication
 > Fork in worktree to work on the API refactor
-> Spawn 3 worktrees to write tests
+> Spawn 2 worktrees to write tests
 > Fork terminal in worktree from develop to fix the login bug
 ```
 
 **Features:**
 - Context handoff with conversation summaries
-- Multiple concurrent agent sessions
+- Multiple concurrent agent sessions (up to 4 workers)
 - Cross-tool compatibility (Claude, Codex, Gemini)
 - Raw command execution for non-AI tasks
 - **Git worktree support** for branch-isolated parallel work
+- **Warp terminal automation** with reliable command execution
 - **tmux integration** for terminal multiplexing
-- Worker coordination and tracking
+- Worker coordination and tracking via JSON registry
+- TASK.md context files for spawned workers
 
 #### Commands
 
@@ -298,7 +317,7 @@ Spawn parallel AI agents or CLI commands in new terminal windows. Now with **git
 
 ```bash
 /fork-terminal:list
-/fork-terminal:remove --path ../my-project-auth --delete-branch
+/fork-terminal:remove --path ../my-project-auth --delete-branch --force
 ```
 
 ---
