@@ -148,10 +148,44 @@ def spawn_terminal_window(cwd: str, command: str) -> Tuple[str, Optional[int]]:
 
     if system == "Darwin":  # macOS
         if terminal == "warp":
-            # Warp doesn't support reliable automation, fall through to Terminal.app
-            pass
+            # Warp: use semicolon to chain commands (more reliable than &&)
+            warp_cmd = f"cd {shlex.quote(cwd)} ; {command}"
+            escaped_cmd = warp_cmd.replace('"', '\\"')
 
-        if terminal == "warp" or terminal == "terminal":
+            applescript = f'''
+                set the clipboard to "{escaped_cmd}"
+
+                tell application "Warp" to activate
+                delay 0.5
+
+                tell application "System Events"
+                    tell process "Warp"
+                        -- Open new tab
+                        keystroke "t" using command down
+                        delay 1.2
+
+                        -- Click to ensure focus
+                        click at {{400, 400}}
+                        delay 0.3
+
+                        -- Paste and execute
+                        keystroke "v" using command down
+                        delay 0.5
+                        keystroke return
+                    end tell
+                end tell
+            '''
+            result = subprocess.run(
+                ["osascript", "-e", applescript],
+                capture_output=True,
+                text=True
+            )
+            if result.returncode == 0:
+                return "Warp terminal launched", None
+            else:
+                return f"Warp error: {result.stderr.strip()}", None
+
+        if terminal == "terminal":
             # Terminal.app
             escaped_cmd = full_command.replace("\\", "\\\\").replace('"', '\\"')
             result = subprocess.run(
