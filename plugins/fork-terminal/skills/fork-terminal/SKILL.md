@@ -217,15 +217,31 @@ Use tournament mode when:
 
 1. **Identify tournament mode** from trigger patterns above
 2. **Parse CLIs to use**: Default is all three, or parse from request
-3. **Read the cookbook**: `cookbook/tournament.md`
-4. **Execute tournament spawning**:
+3. **Ask the user where to run workers** using `AskUserQuestion`:
+
+```json
+{
+  "questions": [{
+    "question": "Where should the tournament workers run?",
+    "header": "Terminal",
+    "options": [
+      {"label": "tmux (Recommended)", "description": "Background sessions - more reliable, no visible windows"},
+      {"label": "Warp/Terminal", "description": "Visible windows - watch workers in real-time"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+4. **Read the cookbook**: `cookbook/tournament.md`
+5. **Execute tournament spawning**:
 
 ```bash
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/tournament.py spawn \
   --task "<task description>" \
   [--clis claude,gemini,codex] \
   [--base <base-branch>] \
-  [--terminal auto|tmux|window]
+  --terminal <tmux|window>
 ```
 
 ### Tournament Workflow

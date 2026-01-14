@@ -32,14 +32,26 @@ Example triggers:
 - "tournament with claude and gemini to fix Y" → Claude + Gemini only
 - "have claude vs codex compete on Z" → Claude + Codex
 
-### Step 2: Spawn Tournament
+### Step 2: Ask Terminal Preference
+
+Since tournament mode runs autonomously (workers complete and exit), ask the user where to run:
+
+**Use `AskUserQuestion` tool:**
+- **tmux (Recommended)**: Runs in background, more reliable, no visible windows
+- **Warp/Terminal**: Visible windows so user can watch workers in real-time
+
+Map the answer:
+- "tmux" → `--terminal tmux`
+- "Warp/Terminal" → `--terminal window`
+
+### Step 3: Spawn Tournament
 
 ```bash
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/tournament.py spawn \
   --task "<task description>" \
   [--clis claude,gemini,codex] \
   [--base <base-branch>] \
-  [--terminal auto|tmux|window]
+  --terminal <tmux|window>
 ```
 
 This will:
@@ -49,7 +61,7 @@ This will:
 4. Spawn terminal sessions running each CLI
 5. Register tournament in coordination file
 
-### Step 3: Report to User
+### Step 4: Report to User
 
 After spawning, report:
 - Tournament ID
@@ -75,7 +87,7 @@ Workers are now competing! Check status with:
   /fork-terminal:status --tournament tournament-1736889600
 ```
 
-### Step 4: Monitor Completion
+### Step 5: Monitor Completion
 
 Users can check progress with:
 ```bash
@@ -88,7 +100,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/tournament.py status \
   --tournament "<tournament-id>"
 ```
 
-### Step 5: Review Solutions
+### Step 6: Review Solutions
 
 When all workers are done (all have DONE.md):
 
@@ -102,7 +114,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/tournament_review.py re
   --tournament "<tournament-id>"
 ```
 
-### Step 6: Create Combined Branch
+### Step 7: Create Combined Branch
 
 After reviewing, create a combined branch:
 
