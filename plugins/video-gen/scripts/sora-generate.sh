@@ -109,11 +109,12 @@ case "$MODEL" in
         ;;
 esac
 
-# Map aspect ratio to size dimensions
+# Map aspect ratio to Sora-supported size dimensions
+# Supported sizes: 720x1280, 1280x720, 1024x1792, 1792x1024
 case "$ASPECT" in
-    16:9) SIZE="1920x1080" ;;
-    9:16) SIZE="1080x1920" ;;
-    1:1)  SIZE="1080x1080" ;;
+    16:9) SIZE="1280x720" ;;
+    9:16) SIZE="720x1280" ;;
+    1:1)  SIZE="1280x720" ;; # 1:1 not supported, use landscape
     *)
         echo "Error: --aspect must be 16:9, 9:16, or 1:1 (got: $ASPECT)" >&2
         exit 1

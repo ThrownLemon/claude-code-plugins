@@ -154,11 +154,15 @@ case "$ASPECT" in
         ;;
 esac
 
-# Check API key
+# Check API key (support both GOOGLE_API_KEY and GEMINI_API_KEY)
 if [ -z "$GOOGLE_API_KEY" ]; then
-    echo "Error: GOOGLE_API_KEY environment variable not set" >&2
-    echo "Get your API key from: https://aistudio.google.com/app/apikey" >&2
-    exit 1
+    if [ -n "$GEMINI_API_KEY" ]; then
+        GOOGLE_API_KEY="$GEMINI_API_KEY"
+    else
+        echo "Error: GOOGLE_API_KEY or GEMINI_API_KEY environment variable not set" >&2
+        echo "Get your API key from: https://aistudio.google.com/app/apikey" >&2
+        exit 1
+    fi
 fi
 
 # API endpoint
@@ -175,30 +179,16 @@ case "$RESOLUTION" in
         ;;
 esac
 
-# Build generation config using correct Veo API schema
-# Note: Uses videoConfig (not generationConfig) and durationSeconds (not videoDuration)
-GEN_CONFIG=$(jq -n \
-    --argjson duration "$DURATION" \
-    --arg aspect "$ASPECT" \
-    --arg resolution "$VEO_RESOLUTION" \
-    --arg prompt "$PROMPT" \
-    '{
-        "videoConfig": {
-            "durationSeconds": $duration,
-            "aspectRatio": $aspect,
-            "resolution": $resolution
-        },
-        "prompt": {
-            "text": $prompt
-        }
-    }')
+# Build generation config using correct Veo REST API schema
+# Structure: { instances: [{ prompt, negativePrompt? }], parameters: { aspectRatio, resolution, durationSeconds } }
+INSTANCE=$(jq -n --arg prompt "$PROMPT" '{ "prompt": $prompt }')
 
-# Add negative prompt if specified
+# Add negative prompt to instance if specified
 if [ -n "$NEGATIVE_PROMPT" ]; then
-    GEN_CONFIG=$(echo "$GEN_CONFIG" | jq --arg neg "$NEGATIVE_PROMPT" '. + {negativePrompt: $neg}')
+    INSTANCE=$(echo "$INSTANCE" | jq --arg neg "$NEGATIVE_PROMPT" '. + { negativePrompt: $neg }')
 fi
 
-# Add image reference if specified
+# Add image reference to instance if specified
 if [ -n "$IMAGE_PATH" ]; then
     # Check for additional dependencies needed for image handling
     for cmd in base64 file; do
@@ -213,13 +203,28 @@ if [ -n "$IMAGE_PATH" ]; then
         IMAGE_B64=$(base64 < "$IMAGE_PATH" | tr -d '\n')
         MIME_TYPE=$(file --mime-type -b "$IMAGE_PATH")
 
-        GEN_CONFIG=$(echo "$GEN_CONFIG" | jq --arg img "$IMAGE_B64" --arg mime "$MIME_TYPE" \
-            '.image = {mimeType: $mime, data: $img}')
+        INSTANCE=$(echo "$INSTANCE" | jq --arg img "$IMAGE_B64" --arg mime "$MIME_TYPE" \
+            '. + { image: { mimeType: $mime, bytesBase64Encoded: $img } }')
     else
         echo "Error: Image file not found: $IMAGE_PATH" >&2
         exit 1
     fi
 fi
+
+# Build final request body (durationSeconds must be a number)
+GEN_CONFIG=$(jq -n \
+    --argjson instance "$INSTANCE" \
+    --arg aspect "$ASPECT" \
+    --arg resolution "$VEO_RESOLUTION" \
+    --argjson duration "$DURATION" \
+    '{
+        "instances": [$instance],
+        "parameters": {
+            "aspectRatio": $aspect,
+            "resolution": $resolution,
+            "durationSeconds": $duration
+        }
+    }')
 
 # Submit generation request
 echo "Submitting video generation request to Veo..." >&2
@@ -229,7 +234,7 @@ echo "Aspect: $ASPECT" >&2
 echo "Resolution: $VEO_RESOLUTION" >&2
 
 RESPONSE=$(curl -sS --connect-timeout 30 --max-time 120 -X POST \
-    "${API_BASE}/models/${MODEL}:generateVideo" \
+    "${API_BASE}/models/${MODEL}:predictLongRunning" \
     -H "Content-Type: application/json" \
     -H "x-goog-api-key: ${GOOGLE_API_KEY}" \
     -d "$GEN_CONFIG")
