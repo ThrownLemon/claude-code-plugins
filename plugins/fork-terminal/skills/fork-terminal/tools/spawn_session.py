@@ -24,6 +24,32 @@ from worktree_manager import (
 from coordination import register_worker
 
 
+# CLI configurations for tournament mode
+CLI_CONFIGS = {
+    "claude": {
+        "command_template": "claude --model {model} --dangerously-skip-permissions {mode_flag} '{prompt}'",
+        "default_model": "opus",
+        "fast_model": "haiku",
+        "interactive_flag": "",  # No -p flag for interactive
+        "autonomous_flag": "-p"  # -p flag for autonomous (run and exit)
+    },
+    "gemini": {
+        "command_template": "gemini --model {model} -y -i '{prompt}'",
+        "default_model": "gemini-3-pro-preview",
+        "fast_model": "gemini-2.5-flash",
+        "interactive_flag": "",
+        "autonomous_flag": ""
+    },
+    "codex": {
+        "command_template": "codex --model {model} --full-auto '{prompt}'",
+        "default_model": "o4-mini",
+        "fast_model": "o4-mini",
+        "interactive_flag": "",
+        "autonomous_flag": ""
+    }
+}
+
+
 def detect_terminal_env() -> str:
     """Detect the available terminal environment.
 
@@ -245,6 +271,57 @@ def build_claude_command(
     else:
         # Interactive mode: pass prompt as argument (without -p) to start interactive with initial message
         return f"claude --model {model} --dangerously-skip-permissions '{safe_prompt}'"
+
+
+def build_cli_command(
+    cli: str,
+    task: str,
+    model: str = None,
+    mode: str = "autonomous",
+    prompt: Optional[str] = None
+) -> str:
+    """Build command for any supported CLI.
+
+    Args:
+        cli: CLI type ("claude", "gemini", "codex").
+        task: Task description.
+        model: Model to use (default: from CLI_CONFIGS).
+        mode: Execution mode - "interactive" or "autonomous".
+        prompt: Custom prompt (default: read TASK.md).
+
+    Returns:
+        CLI command string.
+    """
+    if cli not in CLI_CONFIGS:
+        raise ValueError(f"Unsupported CLI: {cli}. Supported: {list(CLI_CONFIGS.keys())}")
+
+    config = CLI_CONFIGS[cli]
+
+    # Use default model if not specified
+    if model is None:
+        model = config["default_model"]
+
+    # Build prompt
+    if prompt is None:
+        prompt = "Read TASK.md in your current directory and begin working on the assigned task."
+
+    # Escape the prompt for shell
+    safe_prompt = prompt.replace("'", "'\\''")
+
+    # Get mode flag
+    mode_flag = config["autonomous_flag"] if mode == "autonomous" else config["interactive_flag"]
+
+    # Build command from template
+    cmd = config["command_template"].format(
+        model=model,
+        mode_flag=mode_flag,
+        prompt=safe_prompt
+    )
+
+    # Clean up extra spaces from empty mode_flag
+    cmd = " ".join(cmd.split())
+
+    return cmd
 
 
 def spawn_claude_in_worktree(

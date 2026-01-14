@@ -27,6 +27,31 @@ class WorkerInfo:
     terminal: str = "unknown"
 
 
+@dataclass
+class TournamentWorker:
+    """Information about a tournament worker."""
+    worker_id: int
+    cli: str  # "claude", "gemini", "codex"
+    path: str
+    branch: str
+    done: bool = False
+    done_file: Optional[str] = None
+    completed_at: Optional[str] = None
+
+
+@dataclass
+class TournamentInfo:
+    """Information about a tournament."""
+    id: str
+    task: str
+    started: str
+    status: str  # "running", "reviewing", "complete"
+    clis: List[str]
+    workers: List[TournamentWorker]
+    combined_branch: Optional[str] = None
+    base: str = "HEAD"
+
+
 def get_git_dir() -> str:
     """Get the .git directory for the current repository.
 
@@ -279,6 +304,231 @@ def get_worker_by_path(path: str) -> Optional[WorkerInfo]:
         if w["path"] == path:
             return WorkerInfo(**w)
     return None
+
+
+# Tournament functions
+
+def register_tournament(
+    task: str,
+    workers: List[dict],
+    clis: List[str],
+    base: str = "HEAD"
+) -> str:
+    """Register a new tournament.
+
+    Args:
+        task: Task description.
+        workers: List of worker dicts with worker_id, cli, path, branch.
+        clis: List of CLI types used.
+        base: Base branch/commit.
+
+    Returns:
+        Tournament ID.
+    """
+    data = load_coordination()
+
+    # Ensure tournaments list exists
+    if "tournaments" not in data:
+        data["tournaments"] = []
+
+    # Generate tournament ID
+    import time
+    tournament_id = f"tournament-{int(time.time())}"
+
+    # Create tournament workers
+    tournament_workers = [
+        {
+            "worker_id": w["worker_id"],
+            "cli": w["cli"],
+            "path": w["path"],
+            "branch": w["branch"],
+            "done": False,
+            "done_file": None,
+            "completed_at": None
+        }
+        for w in workers
+    ]
+
+    tournament = {
+        "id": tournament_id,
+        "task": task,
+        "started": datetime.now().isoformat(),
+        "status": "running",
+        "clis": clis,
+        "workers": tournament_workers,
+        "combined_branch": None,
+        "base": base
+    }
+
+    data["tournaments"].append(tournament)
+    save_coordination(data)
+
+    return tournament_id
+
+
+def get_tournament(tournament_id: str) -> Optional[TournamentInfo]:
+    """Get tournament by ID.
+
+    Args:
+        tournament_id: Tournament ID.
+
+    Returns:
+        TournamentInfo if found, None otherwise.
+    """
+    data = load_coordination()
+    tournaments = data.get("tournaments", [])
+
+    for t in tournaments:
+        if t["id"] == tournament_id:
+            workers = [TournamentWorker(**w) for w in t["workers"]]
+            return TournamentInfo(
+                id=t["id"],
+                task=t["task"],
+                started=t["started"],
+                status=t["status"],
+                clis=t["clis"],
+                workers=workers,
+                combined_branch=t.get("combined_branch"),
+                base=t.get("base", "HEAD")
+            )
+    return None
+
+
+def get_active_tournaments() -> List[TournamentInfo]:
+    """Get all active (running) tournaments.
+
+    Returns:
+        List of active TournamentInfo objects.
+    """
+    data = load_coordination()
+    tournaments = data.get("tournaments", [])
+
+    result = []
+    for t in tournaments:
+        if t["status"] in ("running", "reviewing"):
+            workers = [TournamentWorker(**w) for w in t["workers"]]
+            result.append(TournamentInfo(
+                id=t["id"],
+                task=t["task"],
+                started=t["started"],
+                status=t["status"],
+                clis=t["clis"],
+                workers=workers,
+                combined_branch=t.get("combined_branch"),
+                base=t.get("base", "HEAD")
+            ))
+    return result
+
+
+def get_all_tournaments() -> List[TournamentInfo]:
+    """Get all tournaments (active and complete).
+
+    Returns:
+        List of all TournamentInfo objects.
+    """
+    data = load_coordination()
+    tournaments = data.get("tournaments", [])
+
+    result = []
+    for t in tournaments:
+        workers = [TournamentWorker(**w) for w in t["workers"]]
+        result.append(TournamentInfo(
+            id=t["id"],
+            task=t["task"],
+            started=t["started"],
+            status=t["status"],
+            clis=t["clis"],
+            workers=workers,
+            combined_branch=t.get("combined_branch"),
+            base=t.get("base", "HEAD")
+        ))
+    return result
+
+
+def update_tournament(tournament_id: str, updates: dict) -> bool:
+    """Update tournament fields.
+
+    Args:
+        tournament_id: Tournament ID.
+        updates: Dictionary of fields to update.
+
+    Returns:
+        True if tournament was updated.
+    """
+    data = load_coordination()
+    tournaments = data.get("tournaments", [])
+
+    for t in tournaments:
+        if t["id"] == tournament_id:
+            for key, value in updates.items():
+                if key in t:
+                    t[key] = value
+            save_coordination(data)
+            return True
+    return False
+
+
+def mark_tournament_worker_done(
+    tournament_id: str,
+    worker_id: int,
+    done_file: str
+) -> bool:
+    """Mark a tournament worker as done.
+
+    Args:
+        tournament_id: Tournament ID.
+        worker_id: Worker ID within the tournament.
+        done_file: Path to the DONE.md file.
+
+    Returns:
+        True if worker was marked done.
+    """
+    data = load_coordination()
+    tournaments = data.get("tournaments", [])
+
+    for t in tournaments:
+        if t["id"] == tournament_id:
+            for w in t["workers"]:
+                if w["worker_id"] == worker_id:
+                    w["done"] = True
+                    w["done_file"] = done_file
+                    w["completed_at"] = datetime.now().isoformat()
+                    save_coordination(data)
+                    return True
+    return False
+
+
+def check_tournament_completion(tournament_id: str) -> dict:
+    """Check if all workers in a tournament are done.
+
+    Args:
+        tournament_id: Tournament ID.
+
+    Returns:
+        Dict with completion status:
+        {
+            "complete": bool,
+            "total": int,
+            "done": int,
+            "pending": List[dict]
+        }
+    """
+    tournament = get_tournament(tournament_id)
+    if not tournament:
+        return {"complete": False, "total": 0, "done": 0, "pending": []}
+
+    done_count = sum(1 for w in tournament.workers if w.done)
+    pending = [
+        {"worker_id": w.worker_id, "cli": w.cli, "path": w.path}
+        for w in tournament.workers if not w.done
+    ]
+
+    return {
+        "complete": done_count == len(tournament.workers),
+        "total": len(tournament.workers),
+        "done": done_count,
+        "pending": pending
+    }
 
 
 # CLI interface

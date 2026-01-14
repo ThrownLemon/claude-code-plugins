@@ -22,6 +22,14 @@ triggers:
   - "work in parallel on"
   - "spawn worker in worktree"
   - "spawn workers"
+  - "tournament mode"
+  - "tournament to"
+  - "tournament with"
+  - "compete claude vs gemini"
+  - "compete claude vs codex"
+  - "race to solve"
+  - "have claude gemini codex compete"
+  - "spawn tournament"
 ---
 
 # Fork Terminal Skill
@@ -184,3 +192,84 @@ After spawning worktree workers:
 - "Fork in worktree to refactor the database layer"
 - "Spawn 2 worktrees to work on frontend and backend"
 - "Fork terminal in worktree from develop to fix the auth bug"
+
+---
+
+## Tournament Mode
+
+Tournament mode spawns multiple AI CLIs (Claude, Gemini, Codex) to **compete** on the same task in separate worktrees. After all workers complete, the main session reviews solutions and creates a combined branch with the best parts.
+
+### When to Use Tournament Mode
+
+Use tournament mode when:
+- You want **multiple approaches** to the same problem
+- You want to **compare** how different AI tools solve a task
+- You need the **best solution** from multiple attempts
+
+### Tournament Trigger Patterns
+
+- "tournament mode to implement X" → All CLIs (claude, gemini, codex)
+- "tournament with claude and gemini to fix Y" → Claude + Gemini
+- "have claude vs codex compete on Z" → Claude + Codex
+- "race to solve X" → All CLIs
+
+### How to Execute Tournament Mode
+
+1. **Identify tournament mode** from trigger patterns above
+2. **Parse CLIs to use**: Default is all three, or parse from request
+3. **Read the cookbook**: `cookbook/tournament.md`
+4. **Execute tournament spawning**:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/tournament.py spawn \
+  --task "<task description>" \
+  [--clis claude,gemini,codex] \
+  [--base <base-branch>] \
+  [--terminal auto|tmux|window]
+```
+
+### Tournament Workflow
+
+1. **Spawn**: Creates worktrees and starts CLI sessions
+2. **Compete**: Workers independently solve the task
+3. **Complete**: Workers write DONE.md when finished
+4. **Status**: User checks progress with `/fork-terminal:status`
+5. **Review**: User triggers review with `/fork-terminal:review`
+6. **Combine**: Create combined branch with best parts
+
+### Tournament Commands
+
+| Command | Description |
+|---------|-------------|
+| `/fork-terminal:status` | Check tournament progress |
+| `/fork-terminal:review` | Review completed solutions |
+| `/fork-terminal:list` | List all worktrees |
+| `/fork-terminal:remove` | Clean up worktrees |
+
+### Tournament Example
+
+```bash
+# Spawn tournament
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/tournament.py spawn \
+  --task "implement user authentication" \
+  --clis claude,gemini,codex
+
+# Check status
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/tournament.py status \
+  --tournament "<tournament-id>"
+
+# Generate review report
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/tournament_review.py report \
+  --tournament "<tournament-id>"
+
+# Create combined branch
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/tournament_review.py combine \
+  --tournament "<tournament-id>"
+```
+
+### Tournament Example Triggers
+
+- "Tournament mode to implement user authentication"
+- "Have claude, gemini, and codex compete on adding caching"
+- "Race to solve the performance issue"
+- "Tournament with claude and gemini to refactor the API"
