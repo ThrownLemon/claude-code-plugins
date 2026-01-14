@@ -148,40 +148,10 @@ def spawn_terminal_window(cwd: str, command: str) -> Tuple[str, Optional[int]]:
 
     if system == "Darwin":  # macOS
         if terminal == "warp":
-            # Use clipboard + paste approach for reliable command entry
-            # This avoids issues with special characters in keystroke simulation
-            applescript = f'''
-                -- Save command to clipboard
-                set the clipboard to "{full_command.replace('"', '\\"')}"
+            # Warp doesn't support reliable automation, fall through to Terminal.app
+            pass
 
-                tell application "Warp" to activate
-                delay 0.3
-
-                tell application "System Events"
-                    tell process "Warp"
-                        -- Open new tab
-                        keystroke "t" using command down
-                        delay 0.5
-
-                        -- Paste from clipboard
-                        keystroke "v" using command down
-                        delay 0.3
-
-                        -- Execute
-                        keystroke return
-                    end tell
-                end tell
-            '''
-            result = subprocess.run(
-                ["osascript", "-e", applescript],
-                capture_output=True,
-                text=True
-            )
-            if result.returncode == 0:
-                return "Warp terminal launched", None
-            else:
-                return f"Warp error: {result.stderr.strip()}", None
-        else:
+        if terminal == "warp" or terminal == "terminal":
             # Terminal.app
             escaped_cmd = full_command.replace("\\", "\\\\").replace('"', '\\"')
             result = subprocess.run(
@@ -236,9 +206,8 @@ def build_claude_command(
         # Use -p flag to run prompt and exit when done
         return f"claude --model {model} --dangerously-skip-permissions -p '{safe_prompt}'"
     else:
-        # Interactive mode: append system prompt so Claude knows about TASK.md, stays open for follow-up
-        system_hint = "There is a TASK.md file in your current directory with your assigned task. Read it and begin working."
-        return f"claude --model {model} --dangerously-skip-permissions --append-system-prompt '{system_hint}'"
+        # Interactive mode: pass prompt as argument (without -p) to start interactive with initial message
+        return f"claude --model {model} --dangerously-skip-permissions '{safe_prompt}'"
 
 
 def spawn_claude_in_worktree(
