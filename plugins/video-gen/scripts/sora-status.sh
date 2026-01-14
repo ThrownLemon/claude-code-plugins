@@ -109,7 +109,8 @@ case "$STATUS" in
         echo "Status: PROCESSING" >&2
         if [ "$PROGRESS" != "null" ]; then
             echo "Progress: ${PROGRESS}%" >&2
-            jq -n --arg progress "$PROGRESS" '{"status": "processing", "progress": ($progress | tonumber)}'
+            # Use try/catch to safely handle non-numeric progress values
+            jq -n --arg progress "$PROGRESS" '{"status": "processing", "progress": (try ($progress | tonumber) catch null)}'
         else
             jq -n '{"status": "processing"}'
         fi

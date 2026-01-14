@@ -73,7 +73,7 @@ This command delegates to the `video-generator` subagent with Veo-specific optio
   - `4k` - Ultra HD
 - **model**: Specific Veo model to use
 - **negative**: Things to exclude from generation
-- **image**: First frame reference image (base64 or path)
+- **image**: First frame reference image file path
 - **output**: Save path for video file
 
 ## Examples

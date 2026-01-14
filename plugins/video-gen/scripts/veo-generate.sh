@@ -37,9 +37,29 @@ Models:
 
 Environment:
   GOOGLE_API_KEY     Required. Get from https://aistudio.google.com/app/apikey
+
+Dependencies:
+  curl, jq, base64, file (for image handling)
 EOF
     exit "${1:-1}"
 }
+
+# Check required dependencies
+check_dependencies() {
+    local missing=()
+    for cmd in curl jq; do
+        if ! command -v "$cmd" >/dev/null 2>&1; then
+            missing+=("$cmd")
+        fi
+    done
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo "Error: Missing required dependencies: ${missing[*]}" >&2
+        echo "Please install them and try again." >&2
+        exit 1
+    fi
+}
+
+check_dependencies
 
 # Parse arguments with validation
 while [[ $# -gt 0 ]]; do
@@ -155,17 +175,16 @@ case "$RESOLUTION" in
         ;;
 esac
 
-# Build generation config
+# Build generation config using correct Veo API schema
+# Note: Uses videoConfig (not generationConfig) and durationSeconds (not videoDuration)
 GEN_CONFIG=$(jq -n \
-    --arg model "models/${MODEL}" \
-    --arg duration "${DURATION}s" \
+    --argjson duration "$DURATION" \
     --arg aspect "$ASPECT" \
     --arg resolution "$VEO_RESOLUTION" \
     --arg prompt "$PROMPT" \
     '{
-        "model": $model,
-        "generationConfig": {
-            "videoDuration": $duration,
+        "videoConfig": {
+            "durationSeconds": $duration,
             "aspectRatio": $aspect,
             "resolution": $resolution
         },
@@ -181,9 +200,17 @@ fi
 
 # Add image reference if specified
 if [ -n "$IMAGE_PATH" ]; then
+    # Check for additional dependencies needed for image handling
+    for cmd in base64 file; do
+        if ! command -v "$cmd" >/dev/null 2>&1; then
+            echo "Error: '$cmd' command required for image handling" >&2
+            exit 1
+        fi
+    done
+
     if [ -f "$IMAGE_PATH" ]; then
-        # Read and base64 encode the image
-        IMAGE_B64=$(base64 -i "$IMAGE_PATH" | tr -d '\n')
+        # Read and base64 encode the image (portable: use stdin redirection)
+        IMAGE_B64=$(base64 < "$IMAGE_PATH" | tr -d '\n')
         MIME_TYPE=$(file --mime-type -b "$IMAGE_PATH")
 
         GEN_CONFIG=$(echo "$GEN_CONFIG" | jq --arg img "$IMAGE_B64" --arg mime "$MIME_TYPE" \
