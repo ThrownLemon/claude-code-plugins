@@ -155,14 +155,12 @@ case "$ASPECT" in
 esac
 
 # Check API key (support both GOOGLE_API_KEY and GEMINI_API_KEY)
-if [ -z "$GOOGLE_API_KEY" ]; then
-    if [ -n "$GEMINI_API_KEY" ]; then
-        GOOGLE_API_KEY="$GEMINI_API_KEY"
-    else
-        echo "Error: GOOGLE_API_KEY or GEMINI_API_KEY environment variable not set" >&2
-        echo "Get your API key from: https://aistudio.google.com/app/apikey" >&2
-        exit 1
-    fi
+# Use a local variable to avoid mutating the environment
+API_KEY="${GOOGLE_API_KEY:-$GEMINI_API_KEY}"
+if [ -z "$API_KEY" ]; then
+    echo "Error: GOOGLE_API_KEY or GEMINI_API_KEY environment variable not set" >&2
+    echo "Get your API key from: https://aistudio.google.com/app/apikey" >&2
+    exit 1
 fi
 
 # API endpoint
@@ -236,7 +234,7 @@ echo "Resolution: $VEO_RESOLUTION" >&2
 RESPONSE=$(curl -sS --connect-timeout 30 --max-time 120 -X POST \
     "${API_BASE}/models/${MODEL}:predictLongRunning" \
     -H "Content-Type: application/json" \
-    -H "x-goog-api-key: ${GOOGLE_API_KEY}" \
+    -H "x-goog-api-key: ${API_KEY}" \
     -d "$GEN_CONFIG")
 
 # Check for errors

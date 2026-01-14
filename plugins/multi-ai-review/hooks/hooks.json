@@ -1,0 +1,11 @@
+{
+  "description": "Multi-AI review event hooks",
+  "hooks": {
+    "SubagentStop": [
+      {
+        "type": "command",
+        "command": "echo 'Multi-AI review complete. Use /multi-ai-review:report to view detailed results.'"
+      }
+    ]
+  }
+}

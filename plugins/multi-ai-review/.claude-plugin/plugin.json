@@ -1,0 +1,8 @@
+{
+  "name": "multi-ai-review",
+  "description": "Multi-AI code review - run parallel reviews with Gemini, Codex, and Claude CLIs, then compare findings for consensus analysis",
+  "version": "1.0.0",
+  "author": {
+    "name": "ThrownLemon"
+  }
+}

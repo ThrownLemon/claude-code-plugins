@@ -68,14 +68,12 @@ if [ -z "$OPERATION_ID" ]; then
 fi
 
 # Check API key (support both GOOGLE_API_KEY and GEMINI_API_KEY)
-if [ -z "$GOOGLE_API_KEY" ]; then
-    if [ -n "$GEMINI_API_KEY" ]; then
-        GOOGLE_API_KEY="$GEMINI_API_KEY"
-    else
-        echo "Error: GOOGLE_API_KEY or GEMINI_API_KEY environment variable not set" >&2
-        echo "Get your API key from: https://aistudio.google.com/app/apikey" >&2
-        exit 1
-    fi
+# Use a local variable to avoid mutating the environment
+API_KEY="${GOOGLE_API_KEY:-$GEMINI_API_KEY}"
+if [ -z "$API_KEY" ]; then
+    echo "Error: GOOGLE_API_KEY or GEMINI_API_KEY environment variable not set" >&2
+    echo "Get your API key from: https://aistudio.google.com/app/apikey" >&2
+    exit 1
 fi
 
 # API endpoint
@@ -84,7 +82,7 @@ API_BASE="https://generativelanguage.googleapis.com/v1beta"
 # Get operation status
 RESPONSE=$(curl -sS --connect-timeout 30 --max-time 60 -X GET \
     "${API_BASE}/${OPERATION_ID}" \
-    -H "x-goog-api-key: ${GOOGLE_API_KEY}")
+    -H "x-goog-api-key: ${API_KEY}")
 
 # Check for errors
 if echo "$RESPONSE" | jq -e '.error' > /dev/null 2>&1; then
@@ -124,7 +122,7 @@ if [ "$DONE" = "true" ]; then
 
             echo "Downloading video to: $OUTPUT_PATH" >&2
             if ! curl -fSL --connect-timeout 30 --max-time 300 \
-                -H "x-goog-api-key: ${GOOGLE_API_KEY}" \
+                -H "x-goog-api-key: ${API_KEY}" \
                 -o "$OUTPUT_PATH" "$VIDEO_URI"; then
                 rm -f "$OUTPUT_PATH"
                 echo "Error: Download failed" >&2
