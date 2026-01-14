@@ -7,7 +7,7 @@ Spawn a new Gemini CLI agent in a separate terminal window.
 | Variable | Value | Description |
 |----------|-------|-------------|
 | DEFAULT_MODEL | gemini-3-pro-preview | Used when no modifier specified |
-| FAST_MODEL | gemini-2.5-flash | Used when "fast" modifier requested |
+| FAST_MODEL | gemini-3-flash-preview | Used when "fast" modifier requested |
 
 ## Security Note
 
@@ -20,7 +20,7 @@ The `-y` (yolo) flag bypasses confirmation prompts, allowing autonomous executio
 3. Optionally use `-i "<instruction>"` to start with an initial task (omit for plain interactive mode)
 4. Select model based on user request:
    - No modifier specified → DEFAULT_MODEL (gemini-3-pro-preview)
-   - "fast" requested → FAST_MODEL (gemini-2.5-flash)
+   - "fast" requested → FAST_MODEL (gemini-3-flash-preview)
    - "heavy" requested → DEFAULT_MODEL (gemini-3-pro-preview)
 
 ## Command Format
@@ -35,8 +35,8 @@ gemini --model <MODEL> -y -i "<instruction>"
 # Default/Heavy (gemini-3-pro-preview)
 gemini --model gemini-3-pro-preview -y
 
-# Fast (gemini-2.5-flash)
-gemini --model gemini-2.5-flash -y
+# Fast (gemini-3-flash-preview)
+gemini --model gemini-3-flash-preview -y
 
 # With instruction
 gemini --model gemini-3-pro-preview -y -i "analyze this codebase"

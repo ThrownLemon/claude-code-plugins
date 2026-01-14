@@ -264,7 +264,7 @@ def spawn_tournament(
 
                 # Add delay between workers for terminal automation
                 if len(worker_data) > 1 and worker["worker_id"] < len(worker_data):
-                    time.sleep(4)
+                    time.sleep(6)
 
             # Also register as a regular worker for tracking
             register_worker(

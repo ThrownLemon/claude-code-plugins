@@ -6,8 +6,8 @@ Spawn a new Codex CLI agent in a separate terminal window.
 
 | Variable | Value | Description |
 |----------|-------|-------------|
-| DEFAULT_MODEL | o4-mini | Used when no modifier specified |
-| FAST_MODEL | o4-mini | Used when "fast" modifier requested |
+| DEFAULT_MODEL | gpt-5.2-codex | Used when no modifier specified |
+| FAST_MODEL | gpt-5.1-codex-mini | Used when "fast" modifier requested |
 
 ## Security Note
 
@@ -19,9 +19,9 @@ The `--full-auto` flag enables low-friction sandboxed automatic execution. For f
 2. Run in interactive mode (default)
 3. Use `--full-auto` for sandboxed automatic execution
 4. Select model based on user request:
-   - No modifier specified → DEFAULT_MODEL (o4-mini)
-   - "fast" requested → FAST_MODEL (o4-mini)
-   - "heavy" requested → DEFAULT_MODEL (o4-mini)
+   - No modifier specified → DEFAULT_MODEL (gpt-5.2-codex)
+   - "fast" requested → FAST_MODEL (gpt-5.1-codex-mini)
+   - "heavy" requested → DEFAULT_MODEL (gpt-5.2-codex)
 
 ## Command Format
 

@@ -16,7 +16,7 @@ Tournament mode:
 |-----|---------------|-----------------|
 | Claude Code | opus | `claude --model {model} --dangerously-skip-permissions -p '{prompt}'` |
 | Gemini CLI | gemini-3-pro-preview | `gemini --model {model} -y -i '{prompt}'` |
-| Codex CLI | o4-mini | `codex --model {model} --full-auto '{prompt}'` |
+| Codex CLI | gpt-5.2-codex | `codex --model {model} --dangerously-bypass-approvals-and-sandbox '{prompt}'` |
 
 ## Execution Steps
 

@@ -29,21 +29,21 @@ CLI_CONFIGS = {
     "claude": {
         "command_template": "claude --model {model} --dangerously-skip-permissions {mode_flag} '{prompt}'",
         "default_model": "opus",
-        "fast_model": "haiku",
+        "fast_model": "sonnet",
         "interactive_flag": "",  # No -p flag for interactive
         "autonomous_flag": "-p"  # -p flag for autonomous (run and exit)
     },
     "gemini": {
         "command_template": "gemini --model {model} -y -i '{prompt}'",
         "default_model": "gemini-3-pro-preview",
-        "fast_model": "gemini-2.5-flash",
+        "fast_model": "gemini-3-flash-preview",
         "interactive_flag": "",
         "autonomous_flag": ""
     },
     "codex": {
-        "command_template": "codex --model {model} --full-auto '{prompt}'",
-        "default_model": "o4-mini",
-        "fast_model": "o4-mini",
+        "command_template": "codex --model {model} --dangerously-bypass-approvals-and-sandbox '{prompt}'",
+        "default_model": "gpt-5.2-codex",
+        "fast_model": "gpt-5.1-codex-mini",
         "interactive_flag": "",
         "autonomous_flag": ""
     }
@@ -200,7 +200,7 @@ def spawn_terminal_window(cwd: str, command: str) -> Tuple[str, Optional[int]]:
                         keystroke return
 
                         -- Wait for command to start before script returns
-                        delay 2.0
+                        delay 3.0
                     end tell
                 end tell
             '''
@@ -426,7 +426,7 @@ def spawn_claude_in_worktree(
                 # Add delay between workers for Warp automation to complete
                 if count > 1 and worker_num < count:
                     import time
-                    time.sleep(4)  # Wait for Warp automation to finish
+                    time.sleep(6)  # Wait for Warp automation to finish
 
             # Register worker
             terminal_type = "tmux" if use_tmux else "window"
