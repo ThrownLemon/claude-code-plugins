@@ -148,16 +148,26 @@ def spawn_terminal_window(cwd: str, command: str) -> Tuple[str, Optional[int]]:
 
     if system == "Darwin":  # macOS
         if terminal == "warp":
-            escaped_cmd = full_command.replace("\\", "\\\\").replace('"', '\\"')
+            # Use clipboard + paste approach for reliable command entry
+            # This avoids issues with special characters in keystroke simulation
             applescript = f'''
+                -- Save command to clipboard
+                set the clipboard to "{full_command.replace('"', '\\"')}"
+
                 tell application "Warp" to activate
-                delay 0.5
+                delay 0.3
+
                 tell application "System Events"
                     tell process "Warp"
+                        -- Open new tab
                         keystroke "t" using command down
                         delay 0.5
-                        keystroke "{escaped_cmd}"
-                        delay 0.8
+
+                        -- Paste from clipboard
+                        keystroke "v" using command down
+                        delay 0.3
+
+                        -- Execute
                         keystroke return
                     end tell
                 end tell
