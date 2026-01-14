@@ -1,6 +1,6 @@
 ---
 name: fork-terminal
-description: Fork terminal sessions to spawn parallel AI agents or CLI commands in new terminal windows
+description: Fork terminal sessions to spawn parallel AI agents or CLI commands in new terminal windows. Supports git worktrees for isolated parallel development.
 triggers:
   - "fork terminal"
   - "fork a terminal"
@@ -14,6 +14,14 @@ triggers:
   - "parallel agent"
   - "spawn agent"
   - "new terminal window"
+  - "fork terminal in worktree"
+  - "spawn worktree"
+  - "parallel worktree"
+  - "worktree spawn"
+  - "fork in worktree"
+  - "work in parallel on"
+  - "spawn worker in worktree"
+  - "spawn workers"
 ---
 
 # Fork Terminal Skill
@@ -97,3 +105,78 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/fork_terminal.py "npm r
 - "Fork terminal use codex fast to write tests"
 - "Fork terminal run npm start"
 - "Spawn a new terminal with gemini to analyze this codebase"
+
+---
+
+## Worktree Mode
+
+Worktree mode creates **git-isolated workspaces** for parallel development. Each worker gets its own branch and worktree directory.
+
+### When to Use Worktree Mode
+
+Use worktree mode when:
+- You need **git isolation** between parallel workers
+- Working on **multiple features** simultaneously
+- You want to **avoid file conflicts** between agents
+
+### Worktree Trigger Patterns
+
+- "fork terminal in worktree use claude to..." → Worktree + Claude
+- "spawn worktree for..." → Create worktree with task
+- "spawn 3 worktrees to..." → Multiple workers
+- "fork in worktree from develop..." → Specify base branch
+
+### How to Execute Worktree Mode
+
+1. **Identify worktree mode** from trigger patterns above
+2. **Read the cookbook**: `cookbook/worktree.md`
+3. **Execute spawn_session.py**:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/spawn_session.py \
+  --task "<task description>" \
+  [--branch "<branch-name>"] \
+  [--base "<base-branch>"] \
+  [--count <1-4>] \
+  [--model <opus|haiku>] \
+  [--terminal <auto|tmux|window>]
+```
+
+### Worktree Examples
+
+```bash
+# Single worker
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/spawn_session.py \
+  --task "implement user authentication"
+
+# Multiple workers
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/spawn_session.py \
+  --task "write API tests" \
+  --count 3
+
+# From specific base branch
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/spawn_session.py \
+  --task "fix bug in login" \
+  --base develop \
+  --branch "fix/login-bug"
+```
+
+### Terminal Detection
+
+Worktree mode automatically detects the terminal environment:
+- **Inside tmux**: Creates new tmux window
+- **tmux available**: Creates new tmux session
+- **No tmux**: Falls back to new terminal window (same as regular fork)
+
+### Management Commands
+
+After spawning worktree workers:
+- `/fork-terminal:list` - Show active worktrees and workers
+- `/fork-terminal:remove --path <path>` - Clean up a worktree
+
+### Worktree Example Triggers
+
+- "Spawn worktree to implement the search feature"
+- "Fork in worktree to refactor the database layer"
+- "Spawn 2 worktrees to work on frontend and backend"
+- "Fork terminal in worktree from develop to fix the auth bug"

@@ -49,7 +49,7 @@ Plugins work in different ways:
 |--------|-------------|
 | [coderabbit](#coderabbit) | AI-powered code review using CodeRabbit CLI |
 | [damage-control](#damage-control) | Blocks dangerous commands and protects sensitive files |
-| [fork-terminal](#fork-terminal) | Spawn parallel AI agents in new terminal windows |
+| [fork-terminal](#fork-terminal) | Spawn parallel AI agents in new terminal windows or git worktrees |
 | [imagegen](#imagegen) | AI image generation with Google Gemini and OpenAI |
 | [ui-ux-pro-max](#uiux-pro-max) | Searchable database of UI/UX design intelligence |
 | [gmcli](#gmail-cli) | Gmail integration for terminal-based email management |
@@ -223,12 +223,19 @@ All hooks run with a 5-second timeout and use `uv` for Python execution.
 
 ### Fork Terminal
 
-Spawn parallel AI agents or CLI commands in new terminal windows. Adapted from [disler/fork-repository-skill](https://github.com/disler/fork-repository-skill).
+Spawn parallel AI agents or CLI commands in new terminal windows. Now with **git worktree support** for isolated parallel development. Adapted from [disler/fork-repository-skill](https://github.com/disler/fork-repository-skill).
 
 **Installation:**
 ```bash
 /plugin install fork-terminal@travis-plugins
 ```
+
+**Two Modes:**
+
+| Mode | Use Case | Git Isolation |
+|------|----------|---------------|
+| **Standard** | Quick parallel help on current task | No - same directory |
+| **Worktree** | Parallel feature development | Yes - separate branches |
 
 **Supported AI Tools:**
 
@@ -244,17 +251,23 @@ Spawn parallel AI agents or CLI commands in new terminal windows. Adapted from [
 - **heavy**: Use most capable models for complex tasks
 
 **Platform Support:**
-- macOS: Fully supported (AppleScript)
+- macOS: Fully supported (AppleScript + tmux)
 - Windows: Fully supported (cmd.exe)
 - Linux: Not yet implemented
 
-**Example Triggers:**
+**Example Triggers (Standard Mode):**
 ```
 > Fork terminal use claude code to refactor the auth module
 > Fork terminal use codex fast to write tests for the API
-> Fork terminal use gemini to analyze this codebase
 > Fork terminal run npm start
-> Spawn a new terminal with claude to handle documentation
+```
+
+**Example Triggers (Worktree Mode):**
+```
+> Spawn worktree to implement user authentication
+> Fork in worktree to work on the API refactor
+> Spawn 3 worktrees to write tests
+> Fork terminal in worktree from develop to fix the login bug
 ```
 
 **Features:**
@@ -262,6 +275,31 @@ Spawn parallel AI agents or CLI commands in new terminal windows. Adapted from [
 - Multiple concurrent agent sessions
 - Cross-tool compatibility (Claude, Codex, Gemini)
 - Raw command execution for non-AI tasks
+- **Git worktree support** for branch-isolated parallel work
+- **tmux integration** for terminal multiplexing
+- Worker coordination and tracking
+
+#### Commands
+
+**`/fork-terminal:list`** - Show active worktrees and workers
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--format` | Output format: `table` or `json` | `table` |
+| `--all` | Show all worktrees, not just plugin-created | false |
+
+**`/fork-terminal:remove`** - Clean up a worktree
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--path` | Worktree path or branch name | required |
+| `--force` | Force removal with uncommitted changes | false |
+| `--delete-branch` | Also delete the git branch | false |
+
+```bash
+/fork-terminal:list
+/fork-terminal:remove --path ../my-project-auth --delete-branch
+```
 
 ---
 
