@@ -89,6 +89,23 @@ def is_tmux_available() -> bool:
     return result.returncode == 0
 
 
+def tmux_session_exists(session_name: str) -> bool:
+    """Check if a tmux session with the given name exists.
+
+    Args:
+        session_name: Name of the session to check.
+
+    Returns:
+        True if the session exists.
+    """
+    result = subprocess.run(
+        ["tmux", "has-session", "-t", session_name],
+        capture_output=True,
+        text=True
+    )
+    return result.returncode == 0
+
+
 def spawn_tmux_session(
     cwd: str,
     command: str,
@@ -100,7 +117,7 @@ def spawn_tmux_session(
     Args:
         cwd: Working directory for the session.
         command: Command to run.
-        session_name: Name for the tmux session (if creating new).
+        session_name: Name for the tmux session (if creating new or adding to).
         window_name: Name for the tmux window.
 
     Returns:
@@ -124,25 +141,43 @@ def spawn_tmux_session(
             return f"tmux error: {result.stderr.strip()}", None
 
     else:
-        # Not inside tmux - create a new detached session
+        # Not inside tmux - check if session already exists
         session = session_name or f"worktree-{os.getpid()}"
-        cmd = [
-            "tmux", "new-session",
-            "-d",  # detached
-            "-c", cwd,
-            "-s", session,
-        ]
-        if window_name:
-            cmd.extend(["-n", window_name])
-        cmd.append(command)
 
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.returncode == 0:
-            # Optionally attach to the session
-            print(f"Created tmux session '{session}'. Attach with: tmux attach -t {session}")
-            return f"Created tmux session: {session}", None
+        if tmux_session_exists(session):
+            # Session exists - create a new window in it
+            cmd = [
+                "tmux", "new-window",
+                "-t", session,
+                "-c", cwd,
+            ]
+            if window_name:
+                cmd.extend(["-n", window_name])
+            cmd.append(command)
+
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode == 0:
+                return f"Added window to session: {session}", None
+            else:
+                return f"tmux error: {result.stderr.strip()}", None
         else:
-            return f"tmux error: {result.stderr.strip()}", None
+            # Create a new detached session
+            cmd = [
+                "tmux", "new-session",
+                "-d",  # detached
+                "-c", cwd,
+                "-s", session,
+            ]
+            if window_name:
+                cmd.extend(["-n", window_name])
+            cmd.append(command)
+
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode == 0:
+                print(f"Created tmux session '{session}'. Attach with: tmux attach -t {session}")
+                return f"Created tmux session: {session}", None
+            else:
+                return f"tmux error: {result.stderr.strip()}", None
 
 
 def spawn_terminal_window(cwd: str, command: str) -> Tuple[str, Optional[int]]:

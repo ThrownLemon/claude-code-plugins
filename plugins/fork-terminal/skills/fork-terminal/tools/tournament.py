@@ -222,6 +222,9 @@ def spawn_tournament(
     )
     results["tournament_id"] = tournament_id
 
+    # Generate tmux session name from tournament ID
+    tmux_session = tournament_id.replace("tournament-", "tourn-")  # Shorter name for tmux
+
     # Now spawn sessions for each worker
     for worker in worker_data:
         try:
@@ -248,12 +251,13 @@ def spawn_tournament(
             )
 
             # Spawn session
-            window_name = f"tournament-{worker['cli']}"
+            window_name = f"{worker['cli']}"
 
             if use_tmux:
                 status, pid = spawn_tmux_session(
                     cwd=worker["path"],
                     command=cli_cmd,
+                    session_name=tmux_session,
                     window_name=window_name
                 )
             else:
