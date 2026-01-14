@@ -119,6 +119,42 @@ AI-powered code review integration using the CodeRabbit CLI.
 
 **`/coderabbit:log`** - View review history and statistics
 
+#### Subagents
+
+**`cr-reviewer`** - Code review specialist
+
+Handles the full review workflow:
+1. Checks prerequisites (CLI installed, authenticated)
+2. Auto-detects base branch if not specified
+3. Runs `coderabbit --prompt-only` with specified options
+4. Categorizes findings by severity (Critical, Major, Minor, Trivial)
+5. Interactive fix loop - apply fixes and re-run review to verify
+6. Handles rate limiting gracefully
+
+| Property | Value |
+|----------|-------|
+| Tools | Bash, Read, Edit, Write, Grep, Glob |
+| Permission Mode | acceptEdits |
+
+**`cr-pr-manager`** - PR comment manager
+
+Manages review comments from all sources:
+1. Auto-detects PR from current branch
+2. Fetches comments from CodeRabbit, other bots, and human reviewers
+3. Categorizes by reviewer and severity
+4. Interactive actions: view details, apply fixes, mark resolved, reply
+
+| Property | Value |
+|----------|-------|
+| Tools | Bash, Read, Edit, Write, Grep, Glob |
+
+#### Hooks
+
+| Event | Trigger | Action |
+|-------|---------|--------|
+| `PostToolUse` | Edit or Write | Notifies that review is available for new changes |
+| `SubagentStop` | cr-reviewer completes | Logs review completion for statistics |
+
 ---
 
 ### Damage Control
@@ -170,6 +206,18 @@ zeroAccessPaths:
   - "~/.my-secrets/"
   - "*.secret"
 ```
+
+#### Hooks
+
+This plugin uses `PreToolUse` hooks to intercept commands before execution:
+
+| Event | Trigger | Script | Action |
+|-------|---------|--------|--------|
+| `PreToolUse` | Bash | `bash-tool-damage-control.py` | Blocks dangerous commands, prompts for risky ones |
+| `PreToolUse` | Edit | `edit-tool-damage-control.py` | Protects sensitive files from modification |
+| `PreToolUse` | Write | `write-tool-damage-control.py` | Prevents writing to protected paths |
+
+All hooks run with a 5-second timeout and use `uv` for Python execution.
 
 ---
 
@@ -308,6 +356,34 @@ export OPENAI_API_KEY=your_key
 **`/imagegen:character`** - Create consistent character sheets
 
 **`/imagegen:config`** - Configure default provider and settings
+
+#### Subagents
+
+**`image-generator`** - AI image generation specialist
+
+Handles all image generation workflows:
+1. Checks API keys are configured
+2. Executes the appropriate Python script based on request type
+3. Presents results with file paths
+4. Suggests next steps (iterate, edit, generate variations)
+5. Handles errors gracefully (missing keys, rate limits, invalid paths)
+
+| Property | Value |
+|----------|-------|
+| Tools | Bash, Read, Write, Glob |
+| Permission Mode | acceptEdits |
+
+**Available Scripts:**
+
+| Script | Purpose |
+|--------|---------|
+| `generate.py` | Generate images from text prompts |
+| `edit.py` | Edit existing images with text instructions |
+| `iterate.py` | Multi-step image refinement sessions |
+| `compare.py` | Compare Google vs OpenAI outputs |
+| `assets.py` | Generate app icons, favicons, social images |
+| `moodboard.py` | Create multiple related images |
+| `character.py` | Generate consistent character sheets |
 
 ---
 
@@ -466,6 +542,34 @@ Combine queries: `from:alice is:unread newer_than:7d`
 **`/gmcli:labels`** - Manage email labels
 
 **`/gmcli:setup`** - Configure gmcli credentials
+
+#### Subagents
+
+**`gmail-assistant`** - Gmail management specialist
+
+Handles all email operations:
+1. Checks prerequisites (gmcli installed, accounts configured)
+2. Executes the appropriate gmcli command
+3. Formats results for easy reading
+4. Offers follow-up actions (read thread, reply, apply labels)
+5. Confirms before sending emails or deleting drafts
+
+| Property | Value |
+|----------|-------|
+| Tools | Bash, Read, Write |
+| Permission Mode | default (prompts for confirmation) |
+
+**Supported Operations:**
+
+| Operation | gmcli Command |
+|-----------|--------------|
+| Search | `gmcli search "<query>"` |
+| Read thread | `gmcli thread <id>` |
+| Send email | `gmcli send --to ... --subject ... --body ...` |
+| List drafts | `gmcli drafts` |
+| Create draft | `gmcli draft create ...` |
+| List labels | `gmcli labels` |
+| Add label | `gmcli label add <thread_id> "<labels>"` |
 
 ---
 
