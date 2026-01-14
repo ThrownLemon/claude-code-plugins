@@ -35,7 +35,35 @@ Extract from user's request:
 - **Base branch** (optional): "from develop", "based on main"
 - **Model preference** (optional): "fast", "heavy", or specific model
 
-### 2. Spawn Workers
+### 2. Ask User for Execution Mode
+
+Before spawning, use the `AskUserQuestion` tool to ask the user which mode they prefer:
+
+```json
+{
+  "questions": [{
+    "question": "How should the spawned worker(s) run?",
+    "header": "Mode",
+    "options": [
+      {
+        "label": "Interactive (Recommended)",
+        "description": "Worker stays open for follow-up questions and manual oversight"
+      },
+      {
+        "label": "Autonomous",
+        "description": "Worker runs the task and exits when done (fire-and-forget)"
+      }
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+Map the response:
+- "Interactive (Recommended)" → `--mode interactive`
+- "Autonomous" → `--mode autonomous`
+
+### 3. Spawn Workers
 
 Execute the spawn_session.py script:
 
@@ -46,10 +74,11 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/spawn_session.py \
   [--base "<base-branch>"] \
   [--count <1-4>] \
   [--model <opus|haiku>] \
+  [--mode <interactive|autonomous>] \
   [--terminal <auto|tmux|window>]
 ```
 
-### 3. Report Results
+### 4. Report Results
 
 After spawning, report to the user:
 - Number of workers spawned
@@ -67,17 +96,18 @@ After spawning, report to the user:
 
 ## Examples
 
-### Single Worker
+### Single Worker (Interactive)
 
 User: "spawn worktree to implement user authentication"
 
 ```bash
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/spawn_session.py \
   --task "implement user authentication" \
-  --model opus
+  --model opus \
+  --mode interactive
 ```
 
-### Multiple Workers
+### Multiple Workers (Autonomous)
 
 User: "spawn 3 worktrees to write tests for the API"
 
@@ -85,7 +115,8 @@ User: "spawn 3 worktrees to write tests for the API"
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/spawn_session.py \
   --task "write tests for the API" \
   --count 3 \
-  --model opus
+  --model opus \
+  --mode autonomous
 ```
 
 ### With Branch Specification

@@ -129,8 +129,11 @@ Use worktree mode when:
 ### How to Execute Worktree Mode
 
 1. **Identify worktree mode** from trigger patterns above
-2. **Read the cookbook**: `cookbook/worktree.md`
-3. **Execute spawn_session.py**:
+2. **Ask the user which execution mode they prefer** using the `AskUserQuestion` tool:
+   - **Interactive** (default): Claude stays open for follow-up questions
+   - **Autonomous**: Claude runs the task and exits when done
+3. **Read the cookbook**: `cookbook/worktree.md`
+4. **Execute spawn_session.py**:
 
 ```bash
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/spawn_session.py \
@@ -139,6 +142,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/spawn_session.py \
   [--base "<base-branch>"] \
   [--count <1-4>] \
   [--model <opus|haiku>] \
+  [--mode <interactive|autonomous>] \
   [--terminal <auto|tmux|window>]
 ```
 

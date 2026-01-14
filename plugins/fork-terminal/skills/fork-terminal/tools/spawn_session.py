@@ -212,6 +212,7 @@ def spawn_terminal_window(cwd: str, command: str) -> Tuple[str, Optional[int]]:
 def build_claude_command(
     task: str,
     model: str = "opus",
+    mode: str = "interactive",
     prompt: Optional[str] = None
 ) -> str:
     """Build the Claude CLI command.
@@ -219,6 +220,7 @@ def build_claude_command(
     Args:
         task: Task description.
         model: Claude model to use.
+        mode: Execution mode - "interactive" (stays open) or "autonomous" (runs and exits).
         prompt: Custom initial prompt (default: read TASK.md).
 
     Returns:
@@ -230,7 +232,13 @@ def build_claude_command(
     # Escape the prompt for shell
     safe_prompt = prompt.replace("'", "'\\''")
 
-    return f"claude --model {model} --dangerously-skip-permissions -p '{safe_prompt}'"
+    if mode == "autonomous":
+        # Use -p flag to run prompt and exit when done
+        return f"claude --model {model} --dangerously-skip-permissions -p '{safe_prompt}'"
+    else:
+        # Interactive mode: append system prompt so Claude knows about TASK.md, stays open for follow-up
+        system_hint = "There is a TASK.md file in your current directory with your assigned task. Read it and begin working."
+        return f"claude --model {model} --dangerously-skip-permissions --append-system-prompt '{system_hint}'"
 
 
 def spawn_claude_in_worktree(
@@ -239,6 +247,7 @@ def spawn_claude_in_worktree(
     base: str = "HEAD",
     count: int = 1,
     model: str = "opus",
+    mode: str = "interactive",
     terminal: str = "auto"
 ) -> dict:
     """Create worktree(s) and spawn Claude session(s).
@@ -251,6 +260,7 @@ def spawn_claude_in_worktree(
         base: Base commit/branch to start from.
         count: Number of workers to spawn (1-4).
         model: Claude model to use.
+        mode: Execution mode - "interactive" (stays open) or "autonomous" (runs and exits).
         terminal: Terminal type: "tmux", "window", or "auto".
 
     Returns:
@@ -313,7 +323,7 @@ def spawn_claude_in_worktree(
             create_task_file(worktree_path, worker_task, worker_branch, worker_num)
 
             # Build Claude command
-            claude_cmd = build_claude_command(task=worker_task, model=model)
+            claude_cmd = build_claude_command(task=worker_task, model=model, mode=mode)
 
             # Spawn session
             window_name = f"worker-{worker_num}" if count > 1 else "worktree"
@@ -369,6 +379,8 @@ if __name__ == "__main__":
     parser.add_argument("--base", default="HEAD", help="Base commit/branch")
     parser.add_argument("--count", "-n", type=int, default=1, help="Number of workers (1-4)")
     parser.add_argument("--model", "-m", default="opus", help="Claude model")
+    parser.add_argument("--mode", choices=["interactive", "autonomous"], default="interactive",
+                        help="Execution mode: interactive (stays open) or autonomous (runs and exits)")
     parser.add_argument("--terminal", choices=["auto", "tmux", "window"], default="auto",
                         help="Terminal type")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
@@ -382,6 +394,7 @@ if __name__ == "__main__":
             base=args.base,
             count=args.count,
             model=args.model,
+            mode=args.mode,
             terminal=args.terminal
         )
 
