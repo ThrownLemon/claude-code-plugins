@@ -172,6 +172,9 @@ def spawn_terminal_window(cwd: str, command: str) -> Tuple[str, Optional[int]]:
                         keystroke "v" using command down
                         delay 0.5
                         keystroke return
+
+                        -- Wait for command to start before script returns
+                        delay 2.0
                     end tell
                 end tell
             '''
@@ -342,6 +345,11 @@ def spawn_claude_in_worktree(
                     cwd=worktree_path,
                     command=claude_cmd
                 )
+
+                # Add delay between workers for Warp automation to complete
+                if count > 1 and worker_num < count:
+                    import time
+                    time.sleep(4)  # Wait for Warp automation to finish
 
             # Register worker
             terminal_type = "tmux" if use_tmux else "window"
