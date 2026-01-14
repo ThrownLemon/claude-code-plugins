@@ -1,0 +1,8 @@
+{
+  "name": "audio-feedback",
+  "description": "Audio feedback for Claude Code - sound effects and voice announcements via Kokoro TTS",
+  "version": "1.0.0",
+  "author": {
+    "name": "ThrownLemon"
+  }
+}

@@ -66,6 +66,16 @@
       },
       "source": "./plugins/gmcli",
       "category": "productivity"
+    },
+    {
+      "name": "audio-feedback",
+      "description": "Audio feedback for Claude Code - sound effects and voice announcements via Kokoro TTS for session events, tool completions, and task notifications",
+      "version": "1.0.0",
+      "author": {
+        "name": "ThrownLemon"
+      },
+      "source": "./plugins/audio-feedback",
+      "category": "accessibility"
     }
   ]
 }
