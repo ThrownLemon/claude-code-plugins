@@ -45,14 +45,14 @@ Plugins work in different ways:
 
 ## Available Plugins
 
-| Plugin | Category | Type | Description |
-|--------|----------|------|-------------|
-| [coderabbit](#coderabbit) | Productivity | Commands + Skills | AI-powered code review using CodeRabbit CLI |
-| [damage-control](#damage-control) | Security | Hooks + Skills | Blocks dangerous commands and protects sensitive files |
-| [fork-terminal](#fork-terminal) | Productivity | Skills | Spawn parallel AI agents in new terminal windows |
-| [imagegen](#imagegen) | Creative | Commands + Skills | AI image generation with Google Gemini and OpenAI |
-| [ui-ux-pro-max](#uiux-pro-max) | Design | Skills | Searchable database of UI/UX design intelligence |
-| [gmcli](#gmail-cli) | Productivity | Commands + Skills | Gmail integration for terminal-based email management |
+| Plugin | Description |
+|--------|-------------|
+| [coderabbit](#coderabbit) | AI-powered code review using CodeRabbit CLI |
+| [damage-control](#damage-control) | Blocks dangerous commands and protects sensitive files |
+| [fork-terminal](#fork-terminal) | Spawn parallel AI agents in new terminal windows |
+| [imagegen](#imagegen) | AI image generation with Google Gemini and OpenAI |
+| [ui-ux-pro-max](#uiux-pro-max) | Searchable database of UI/UX design intelligence |
+| [gmcli](#gmail-cli) | Gmail integration for terminal-based email management |
 
 ---
 
@@ -70,16 +70,6 @@ AI-powered code review integration using the CodeRabbit CLI.
 **Prerequisites:**
 - [CodeRabbit CLI](https://docs.coderabbit.ai/cli/overview) installed and authenticated
 
-**Commands:**
-
-| Command | Description |
-|---------|-------------|
-| `/coderabbit:local` | Review local changes before committing |
-| `/coderabbit:pr` | View and address PR review comments |
-| `/coderabbit:auth` | Authenticate with CodeRabbit CLI |
-| `/coderabbit:config` | Configure plugin settings |
-| `/coderabbit:log` | View review history and statistics |
-
 **Auto-Triggers:**
 - "Review my code"
 - "Check my changes"
@@ -93,12 +83,41 @@ AI-powered code review integration using the CodeRabbit CLI.
 - Rate limit handling for free tier users
 - Automatic base branch detection
 
-**Example Usage:**
+#### Commands
+
+**`/coderabbit:local`** - Review local code changes before creating a PR
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--type` | Review scope: `uncommitted`, `committed`, or `all` | `all` |
+| `--base` | Base branch to compare against | auto-detect |
+
+```bash
+/coderabbit:local
+/coderabbit:local --type uncommitted
+/coderabbit:local --base develop
+/coderabbit:local --type committed --base main
 ```
-> Review my changes before I commit
-> /coderabbit:local --type staged
-> Check for issues in what I've written
+
+**`/coderabbit:pr`** - View and manage all PR review comments
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--pr` | PR number to manage | auto-detect from branch |
+| `--filter` | Filter by reviewer (`coderabbit`, `human`, `bot`) or severity (`critical`, `major`, `minor`) | none |
+
+```bash
+/coderabbit:pr
+/coderabbit:pr --pr 123
+/coderabbit:pr --filter coderabbit
+/coderabbit:pr --pr 456 --filter critical
 ```
+
+**`/coderabbit:auth`** - Authenticate with CodeRabbit CLI
+
+**`/coderabbit:config`** - Configure plugin settings
+
+**`/coderabbit:log`** - View review history and statistics
 
 ---
 
@@ -217,19 +236,6 @@ export GEMINI_API_KEY=your_key  # or GOOGLE_API_KEY
 export OPENAI_API_KEY=your_key
 ```
 
-**Commands:**
-
-| Command | Description |
-|---------|-------------|
-| `/imagegen:generate` | Generate images from text prompts |
-| `/imagegen:edit` | Edit existing images |
-| `/imagegen:iterate` | Refine images through multiple steps |
-| `/imagegen:compare` | Compare Google vs OpenAI providers |
-| `/imagegen:assets` | Generate project assets (icons, favicons) |
-| `/imagegen:moodboard` | Create design inspiration sets |
-| `/imagegen:character` | Create consistent character sheets |
-| `/imagegen:config` | Configure default provider and settings |
-
 **Auto-Triggers:**
 - "Generate an image of..."
 - "Create a logo for..."
@@ -255,13 +261,53 @@ export OPENAI_API_KEY=your_key
 | Portrait | 9:16 | 1024x1536 |
 | Wide | 21:9 | - |
 
-**Example Usage:**
+#### Commands
+
+**`/imagegen:generate`** - Generate images from text prompts
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--prompt` | Text description of the image to generate | required |
+| `--provider` | Provider: `google` or `openai` | from config |
+| `--model` | Specific model (e.g., `gemini-2.5-flash-image`, `gpt-image-1.5`) | provider default |
+| `--size` | Size/aspect ratio: `1:1`, `16:9`, `square`, `landscape`, `portrait` | `1:1` |
+| `--count` | Number of images to generate (1-4) | `1` |
+| `--output` | Output file path | auto-generated |
+
+```bash
+/imagegen:generate --prompt "A serene mountain lake at sunset"
+/imagegen:generate --prompt "Logo for a tech startup" --provider openai --size square
+/imagegen:generate --prompt "Cyberpunk cityscape" --provider google --size 16:9
+/imagegen:generate --prompt "Cute robot mascot" --count 4
 ```
-> Generate an image of a sunset over mountains in watercolor style
-> /imagegen:generate --prompt "Minimalist logo for a tech startup" --provider openai
-> Create icons for my mobile app
-> Edit this image to add rain effects
+
+**`/imagegen:edit`** - Edit existing images with AI
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--image` | Path to the image to edit | required |
+| `--prompt` | Edit instructions (what changes to make) | required |
+| `--provider` | Provider: `google` or `openai` | from config |
+| `--mask` | Path to mask image for inpainting (OpenAI only) | none |
+| `--output` | Output file path | auto-generated |
+
+```bash
+/imagegen:edit --image photo.png --prompt "Add a rainbow in the sky"
+/imagegen:edit --image portrait.jpg --prompt "Convert to watercolor painting style"
+/imagegen:edit --image scene.png --prompt "Remove the person on the left" --provider openai --mask mask.png
 ```
+
+**`/imagegen:iterate`** - Refine images through multiple steps
+
+**`/imagegen:compare`** - Compare Google vs OpenAI providers side-by-side
+
+**`/imagegen:assets`** - Generate project assets (icons, favicons, social images)
+
+**`/imagegen:moodboard`** - Create design inspiration sets
+
+**`/imagegen:character`** - Create consistent character sheets
+
+**`/imagegen:config`** - Configure default provider and settings
 
 ---
 
@@ -348,17 +394,6 @@ Gmail integration using gmcli for terminal-based email management.
   gmcli setup  # Follow OAuth setup
   ```
 
-**Commands:**
-
-| Command | Description |
-|---------|-------------|
-| `/gmcli:search` | Search emails with Gmail query syntax |
-| `/gmcli:read` | Read individual messages and threads |
-| `/gmcli:send` | Send emails with optional attachments |
-| `/gmcli:draft` | Create and manage drafts |
-| `/gmcli:labels` | Manage email labels |
-| `/gmcli:setup` | Configure gmcli credentials |
-
 **Auto-Triggers:**
 - "Check my email"
 - "Any new emails?"
@@ -374,13 +409,63 @@ Gmail integration using gmcli for terminal-based email management.
 | "Check inbox" | `in:inbox newer_than:1d` |
 | "Emails from John" | `from:John` |
 
-**Gmail Query Examples:**
+#### Commands
+
+**`/gmcli:search`** - Search Gmail using query syntax
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--query` | Gmail search query (e.g., `from:alice subject:meeting`) | required |
+| `--account` | Gmail account to search | default account |
+| `--limit` | Maximum threads to return | `10` |
+
+```bash
+/gmcli:search --query "is:unread"
+/gmcli:search --query "from:boss@company.com newer_than:1d"
+/gmcli:search --query "subject:invoice has:attachment" --limit 5
 ```
-> Search for unread emails from my boss
-> Find emails about the quarterly report
-> Check if I have any emails from support
-> Send an email to alice@example.com about the meeting
+
+**Gmail Query Syntax:**
+
+| Query | Description |
+|-------|-------------|
+| `from:alice` | Emails from alice |
+| `to:bob` | Emails sent to bob |
+| `subject:meeting` | Subject contains "meeting" |
+| `is:unread` | Unread emails |
+| `is:starred` | Starred emails |
+| `has:attachment` | Has attachments |
+| `newer_than:1d` | Last 24 hours |
+| `older_than:1w` | Older than 1 week |
+| `label:work` | Has label "work" |
+
+Combine queries: `from:alice is:unread newer_than:7d`
+
+**`/gmcli:send`** - Send an email
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--to` | Recipient email(s), comma-separated | required |
+| `--subject` | Email subject line | required |
+| `--body` | Email body text (or `@/path/to/file`) | required |
+| `--cc` | CC recipients, comma-separated | none |
+| `--bcc` | BCC recipients, comma-separated | none |
+| `--attach` | File path(s) to attach, comma-separated | none |
+| `--account` | Gmail account to send from | default account |
+
+```bash
+/gmcli:send --to "alice@example.com" --subject "Quick question" --body "Are we meeting tomorrow?"
+/gmcli:send --to "bob@example.com" --subject "Report" --body @report.txt --attach "/path/to/report.pdf"
+/gmcli:send --to "team@example.com,lead@example.com" --subject "Update" --body "Status update..."
 ```
+
+**`/gmcli:read`** - Read individual messages and threads
+
+**`/gmcli:draft`** - Create and manage drafts
+
+**`/gmcli:labels`** - Manage email labels
+
+**`/gmcli:setup`** - Configure gmcli credentials
 
 ---
 
