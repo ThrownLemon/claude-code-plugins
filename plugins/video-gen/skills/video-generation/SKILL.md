@@ -62,22 +62,41 @@ The `video-generator` subagent will:
 ## Supported Providers
 
 **Google Veo** (via Gemini API):
-- Models: veo-3.1, veo-3.1-fast, veo-2.0
+| Model | Full ID | Status | Audio |
+|-------|---------|--------|-------|
+| Veo 3.1 | `veo-3.1-generate-preview` | Preview | Yes |
+| Veo 3.1 Fast | `veo-3.1-fast-generate-preview` | Preview | Yes |
+| Veo 2.0 | `veo-2.0-generate-001` | Stable | No |
+
 - Duration: 4, 6, 8 seconds
 - Resolution: 720p, 1080p, 4K
 - Aspect: 16:9, 9:16
 
 **OpenAI Sora**:
-- Models: sora-2, sora-2-pro
+| Model | ID | Use Case |
+|-------|-----|----------|
+| Sora 2 | `sora-2` | Fast iteration, exploration |
+| Sora 2 Pro | `sora-2-pro` | Production quality |
+
+Snapshot variants available: `sora-2-2025-10-06`, `sora-2-2025-12-08`, `sora-2-pro-2025-10-06`
+
 - Duration: 4, 8, 12 seconds
-- Aspect: 16:9, 9:16
+- Aspect: 16:9, 9:16, 1:1
+- Audio: Included in output
 
 ## Default Options
 
-- **Duration**: 6 seconds (Veo) / 8 seconds (Sora)
-- **Aspect**: 16:9 (landscape)
-- **Resolution**: 1080p
-- **Provider**: Auto-selected based on availability
+| Option | Veo Default | Sora Default |
+|--------|-------------|--------------|
+| Duration | 6 seconds | 8 seconds |
+| Aspect | 16:9 | 16:9 |
+| Resolution | 1080p | 1920x1080 |
+| Model | veo-3.1-generate-preview | sora-2 |
+
+**Provider Selection**: Auto-selected based on:
+1. Available API keys
+2. Requested features (e.g., 12s duration requires Sora)
+3. User preference if specified
 
 ## Example Triggers
 

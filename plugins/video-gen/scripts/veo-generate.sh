@@ -13,40 +13,99 @@ MODEL="veo-3.1-generate-preview"
 NEGATIVE_PROMPT=""
 IMAGE_PATH=""
 
-# Parse arguments
+# Usage function
+usage() {
+    cat >&2 <<EOF
+Usage: $(basename "$0") --prompt "description" [options]
+
+Required:
+  --prompt TEXT      Video description prompt
+
+Options:
+  --duration NUM     Duration in seconds: 4, 6, or 8 (default: 6)
+  --aspect RATIO     Aspect ratio: 16:9 or 9:16 (default: 16:9)
+  --resolution RES   Resolution: 720p, 1080p, or 4k (default: 1080p)
+  --model MODEL      Model name (default: veo-3.1-generate-preview)
+  --negative TEXT    Negative prompt (elements to exclude)
+  --image PATH       Reference image file path
+  --help             Show this help message
+
+Models:
+  veo-3.1-generate-preview      Latest with audio (preview)
+  veo-3.1-fast-generate-preview Fast variant with audio (preview)
+  veo-2.0-generate-001          Stable, silent video
+
+Environment:
+  GOOGLE_API_KEY     Required. Get from https://aistudio.google.com/app/apikey
+EOF
+    exit "${1:-1}"
+}
+
+# Parse arguments with validation
 while [[ $# -gt 0 ]]; do
     case $1 in
         --prompt)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo "Error: --prompt requires a value" >&2
+                usage 1
+            fi
             PROMPT="$2"
             shift 2
             ;;
         --duration)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo "Error: --duration requires a value" >&2
+                usage 1
+            fi
             DURATION="$2"
             shift 2
             ;;
         --aspect)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo "Error: --aspect requires a value" >&2
+                usage 1
+            fi
             ASPECT="$2"
             shift 2
             ;;
         --resolution)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo "Error: --resolution requires a value" >&2
+                usage 1
+            fi
             RESOLUTION="$2"
             shift 2
             ;;
         --model)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo "Error: --model requires a value" >&2
+                usage 1
+            fi
             MODEL="$2"
             shift 2
             ;;
         --negative)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo "Error: --negative requires a value" >&2
+                usage 1
+            fi
             NEGATIVE_PROMPT="$2"
             shift 2
             ;;
         --image)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo "Error: --image requires a value" >&2
+                usage 1
+            fi
             IMAGE_PATH="$2"
             shift 2
             ;;
+        --help|-h)
+            usage 0
+            ;;
         *)
             echo "Unknown option: $1" >&2
-            exit 1
+            usage 1
             ;;
     esac
 done
@@ -54,8 +113,26 @@ done
 # Validate required arguments
 if [ -z "$PROMPT" ]; then
     echo "Error: --prompt is required" >&2
-    exit 1
+    usage 1
 fi
+
+# Validate duration (must be 4, 6, or 8)
+case "$DURATION" in
+    4|6|8) ;;
+    *)
+        echo "Error: --duration must be 4, 6, or 8 (got: $DURATION)" >&2
+        exit 1
+        ;;
+esac
+
+# Validate aspect ratio
+case "$ASPECT" in
+    16:9|9:16) ;;
+    *)
+        echo "Error: --aspect must be 16:9 or 9:16 (got: $ASPECT)" >&2
+        exit 1
+        ;;
+esac
 
 # Check API key
 if [ -z "$GOOGLE_API_KEY" ]; then
@@ -67,30 +144,35 @@ fi
 # API endpoint
 API_BASE="https://generativelanguage.googleapis.com/v1beta"
 
-# Build the request payload
 # Map resolution to Veo format
 case "$RESOLUTION" in
     720p) VEO_RESOLUTION="720p" ;;
     1080p) VEO_RESOLUTION="1080p" ;;
     4k|4K) VEO_RESOLUTION="4k" ;;
-    *) VEO_RESOLUTION="1080p" ;;
+    *)
+        echo "Warning: Unknown resolution '$RESOLUTION', using 1080p" >&2
+        VEO_RESOLUTION="1080p"
+        ;;
 esac
 
 # Build generation config
-GEN_CONFIG=$(cat <<EOF
-{
-  "model": "models/${MODEL}",
-  "generationConfig": {
-    "videoDuration": "${DURATION}s",
-    "aspectRatio": "${ASPECT}",
-    "resolution": "${VEO_RESOLUTION}"
-  },
-  "prompt": {
-    "text": $(echo "$PROMPT" | jq -Rs .)
-  }
-}
-EOF
-)
+GEN_CONFIG=$(jq -n \
+    --arg model "models/${MODEL}" \
+    --arg duration "${DURATION}s" \
+    --arg aspect "$ASPECT" \
+    --arg resolution "$VEO_RESOLUTION" \
+    --arg prompt "$PROMPT" \
+    '{
+        "model": $model,
+        "generationConfig": {
+            "videoDuration": $duration,
+            "aspectRatio": $aspect,
+            "resolution": $resolution
+        },
+        "prompt": {
+            "text": $prompt
+        }
+    }')
 
 # Add negative prompt if specified
 if [ -n "$NEGATIVE_PROMPT" ]; then
@@ -98,13 +180,18 @@ if [ -n "$NEGATIVE_PROMPT" ]; then
 fi
 
 # Add image reference if specified
-if [ -n "$IMAGE_PATH" ] && [ -f "$IMAGE_PATH" ]; then
-    # Read and base64 encode the image
-    IMAGE_B64=$(base64 -i "$IMAGE_PATH" | tr -d '\n')
-    MIME_TYPE=$(file --mime-type -b "$IMAGE_PATH")
+if [ -n "$IMAGE_PATH" ]; then
+    if [ -f "$IMAGE_PATH" ]; then
+        # Read and base64 encode the image
+        IMAGE_B64=$(base64 -i "$IMAGE_PATH" | tr -d '\n')
+        MIME_TYPE=$(file --mime-type -b "$IMAGE_PATH")
 
-    GEN_CONFIG=$(echo "$GEN_CONFIG" | jq --arg img "$IMAGE_B64" --arg mime "$MIME_TYPE" \
-        '.image = {mimeType: $mime, data: $img}')
+        GEN_CONFIG=$(echo "$GEN_CONFIG" | jq --arg img "$IMAGE_B64" --arg mime "$MIME_TYPE" \
+            '.image = {mimeType: $mime, data: $img}')
+    else
+        echo "Error: Image file not found: $IMAGE_PATH" >&2
+        exit 1
+    fi
 fi
 
 # Submit generation request
@@ -114,7 +201,7 @@ echo "Duration: ${DURATION}s" >&2
 echo "Aspect: $ASPECT" >&2
 echo "Resolution: $VEO_RESOLUTION" >&2
 
-RESPONSE=$(curl -s -X POST \
+RESPONSE=$(curl -sS --connect-timeout 30 --max-time 120 -X POST \
     "${API_BASE}/models/${MODEL}:generateVideo" \
     -H "Content-Type: application/json" \
     -H "x-goog-api-key: ${GOOGLE_API_KEY}" \

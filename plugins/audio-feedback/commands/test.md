@@ -2,7 +2,7 @@
 description: Test audio feedback sounds and voice announcements
 arguments:
   - name: type
-    description: "What to test: 'sounds', 'voice', or 'all' (default: all)"
+    description: "What to test: 'sounds', 'voice', or 'all'. Case-insensitive. Invalid values default to 'all'. (default: all)"
     required: false
 ---
 
@@ -16,6 +16,8 @@ Test the audio feedback plugin to verify sounds and voice announcements are work
 - `voice` - Test voice announcements only
 - `all` - Test both sounds and voice (default)
 
+**Note**: Values are case-insensitive (`SOUNDS`, `Sounds`, `sounds` all work). Invalid values fall back to `all`.
+
 ## Steps
 
 ### 1. Check Prerequisites
@@ -23,15 +25,26 @@ Test the audio feedback plugin to verify sounds and voice announcements are work
 First, verify the audio system is available:
 
 ```bash
-# Check if afplay is available (should be on macOS)
-which afplay
+# Detect available audio player
+if command -v afplay >/dev/null 2>&1; then
+    echo "Audio player: afplay (macOS)"
+elif command -v paplay >/dev/null 2>&1; then
+    echo "Audio player: paplay (PulseAudio)"
+elif command -v aplay >/dev/null 2>&1; then
+    echo "Audio player: aplay (ALSA)"
+elif command -v play >/dev/null 2>&1; then
+    echo "Audio player: play (SoX)"
+else
+    echo "No audio player found"
+fi
 ```
 
 If testing voice, check Kokoro TTS:
 
 ```bash
-# Check if Kokoro TTS is running
-curl -s http://localhost:8880/v1/models 2>/dev/null && echo "Kokoro TTS is available" || echo "Kokoro TTS not available"
+# Check if Kokoro TTS is running (uses KOKORO_TTS_URL if set)
+KOKORO_URL="${KOKORO_TTS_URL:-http://localhost:8880}"
+curl -sS --connect-timeout 5 "${KOKORO_URL}/v1/models" 2>/dev/null && echo "Kokoro TTS is available" || echo "Kokoro TTS not available"
 ```
 
 ### 2. Test Sound Effects
@@ -39,25 +52,29 @@ curl -s http://localhost:8880/v1/models 2>/dev/null && echo "Kokoro TTS is avail
 If `$ARGUMENTS.type` is `sounds` or `all`, test each sound:
 
 ```bash
-# Test tool completion sound
-echo "Testing tool completion sound..."
-afplay /System/Library/Sounds/Pop.aiff
+# Detect player
+PLAYER=""
+if command -v afplay >/dev/null 2>&1; then
+    PLAYER="afplay"
+elif command -v paplay >/dev/null 2>&1; then
+    PLAYER="paplay"
+elif command -v aplay >/dev/null 2>&1; then
+    PLAYER="aplay -q"
+elif command -v play >/dev/null 2>&1; then
+    PLAYER="play -q"
+fi
 
-# Test session start sound
-echo "Testing session start sound..."
-afplay /System/Library/Sounds/Glass.aiff
-
-# Test session end sound
-echo "Testing session end sound..."
-afplay /System/Library/Sounds/Purr.aiff
-
-# Test prompt submit sound
-echo "Testing prompt submit sound..."
-afplay /System/Library/Sounds/Tink.aiff
-
-# Test task completion sound
-echo "Testing task completion sound..."
-afplay /System/Library/Sounds/Hero.aiff
+if [ -n "$PLAYER" ]; then
+    # Test with system sounds (macOS) or skip if unavailable
+    for sound in Pop Glass Purr Tink Hero; do
+        file="/System/Library/Sounds/${sound}.aiff"
+        if [ -f "$file" ]; then
+            echo "Testing ${sound} sound..."
+            $PLAYER "$file"
+            sleep 0.5
+        fi
+    done
+fi
 ```
 
 ### 3. Test Voice Announcements
@@ -65,8 +82,9 @@ afplay /System/Library/Sounds/Hero.aiff
 If `$ARGUMENTS.type` is `voice` or `all`, test TTS:
 
 ```bash
-# Test voice announcement
-curl -s http://localhost:8880/v1/audio/speech \
+# Test voice announcement using configured endpoint
+KOKORO_URL="${KOKORO_TTS_URL:-http://localhost:8880}"
+curl -sS --connect-timeout 5 --max-time 30 "${KOKORO_URL}/v1/audio/speech" \
   -H 'Content-Type: application/json' \
   -d '{"model":"kokoro","input":"Audio feedback test successful. Voice announcements are working.","voice":"af_heart"}' \
   | afplay -
@@ -85,14 +103,16 @@ After testing, report:
 ### No sound at all
 - Check system volume
 - Verify audio output device is connected
-- Try: `afplay /System/Library/Sounds/Ping.aiff`
+- Check audio player availability (see step 1)
+- On macOS try: `afplay /System/Library/Sounds/Ping.aiff`
+- On Linux try: `paplay /usr/share/sounds/freedesktop/stereo/complete.oga`
 
 ### Voice not working
 - Ensure Kokoro TTS server is running
-- Check the endpoint URL: `curl http://localhost:8880/v1/models`
+- Check the endpoint URL: `curl ${KOKORO_TTS_URL:-http://localhost:8880}/v1/models`
 - Verify network connectivity
 
 ### Custom sounds not playing
 - Check sound files exist in `plugins/audio-feedback/sounds/`
 - Verify file format is WAV or AIFF
-- Try playing directly: `afplay plugins/audio-feedback/sounds/tool-complete.wav`
+- Try playing directly with detected player

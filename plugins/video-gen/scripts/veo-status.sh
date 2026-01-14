@@ -8,10 +8,34 @@ OPERATION_ID=""
 DOWNLOAD=false
 OUTPUT_PATH=""
 
-# Parse arguments
+# Usage function
+usage() {
+    cat >&2 <<EOF
+Usage: $(basename "$0") --operation-id ID [options]
+
+Required:
+  --operation-id ID  Operation ID returned from generation request
+                     Format: models/{model}/operations/{operation-id}
+
+Options:
+  --download         Download video when complete
+  --output PATH      Output file path (default: veo_TIMESTAMP.mp4)
+  --help             Show this help message
+
+Environment:
+  GOOGLE_API_KEY     Required. Get from https://aistudio.google.com/app/apikey
+EOF
+    exit "${1:-1}"
+}
+
+# Parse arguments with validation
 while [[ $# -gt 0 ]]; do
     case $1 in
         --operation-id)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo "Error: --operation-id requires a value" >&2
+                usage 1
+            fi
             OPERATION_ID="$2"
             shift 2
             ;;
@@ -20,12 +44,19 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --output)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo "Error: --output requires a value" >&2
+                usage 1
+            fi
             OUTPUT_PATH="$2"
             shift 2
             ;;
+        --help|-h)
+            usage 0
+            ;;
         *)
             echo "Unknown option: $1" >&2
-            exit 1
+            usage 1
             ;;
     esac
 done
@@ -33,7 +64,7 @@ done
 # Validate required arguments
 if [ -z "$OPERATION_ID" ]; then
     echo "Error: --operation-id is required" >&2
-    exit 1
+    usage 1
 fi
 
 # Check API key
@@ -46,7 +77,7 @@ fi
 API_BASE="https://generativelanguage.googleapis.com/v1beta"
 
 # Get operation status
-RESPONSE=$(curl -s -X GET \
+RESPONSE=$(curl -sS --connect-timeout 30 --max-time 60 -X GET \
     "${API_BASE}/${OPERATION_ID}" \
     -H "x-goog-api-key: ${GOOGLE_API_KEY}")
 
@@ -54,6 +85,7 @@ RESPONSE=$(curl -s -X GET \
 if echo "$RESPONSE" | jq -e '.error' > /dev/null 2>&1; then
     ERROR_MSG=$(echo "$RESPONSE" | jq -r '.error.message // "Unknown error"')
     echo "Error: $ERROR_MSG" >&2
+    jq -n --arg error "$ERROR_MSG" '{"status": "error", "error": $error}'
     exit 1
 fi
 
@@ -63,12 +95,12 @@ METADATA=$(echo "$RESPONSE" | jq -r '.metadata // {}')
 
 # Check if operation is complete
 if [ "$DONE" = "true" ]; then
-    # Check for success or failure
-    if echo "$RESPONSE" | jq -e '.error' > /dev/null 2>&1; then
-        ERROR_MSG=$(echo "$RESPONSE" | jq -r '.error.message // "Generation failed"')
+    # Check for failure in response
+    if echo "$RESPONSE" | jq -e '.response.error' > /dev/null 2>&1; then
+        ERROR_MSG=$(echo "$RESPONSE" | jq -r '.response.error.message // "Generation failed"')
         echo "Status: FAILED" >&2
         echo "Error: $ERROR_MSG" >&2
-        echo '{"status": "FAILED", "error": "'"$ERROR_MSG"'"}'
+        jq -n --arg error "$ERROR_MSG" '{"status": "failed", "error": $error}'
         exit 1
     fi
 
@@ -87,26 +119,46 @@ if [ "$DONE" = "true" ]; then
             fi
 
             echo "Downloading video to: $OUTPUT_PATH" >&2
-            curl -s -o "$OUTPUT_PATH" "$VIDEO_URI"
-            echo "Download complete!" >&2
+            if ! curl -fSL --connect-timeout 30 --max-time 300 -o "$OUTPUT_PATH" "$VIDEO_URI"; then
+                rm -f "$OUTPUT_PATH"
+                echo "Error: Download failed" >&2
+                jq -n --arg uri "$VIDEO_URI" '{"status": "succeeded", "videoUri": $uri, "error": "download_failed"}'
+                exit 1
+            fi
 
-            echo '{"status": "SUCCEEDED", "videoUri": "'"$VIDEO_URI"'", "savedTo": "'"$OUTPUT_PATH"'"}'
+            # Verify file was created and has content
+            if [ ! -s "$OUTPUT_PATH" ]; then
+                rm -f "$OUTPUT_PATH"
+                echo "Error: Downloaded file is empty" >&2
+                jq -n --arg uri "$VIDEO_URI" '{"status": "succeeded", "videoUri": $uri, "error": "empty_file"}'
+                exit 1
+            fi
+
+            echo "Download complete!" >&2
+            echo "Video saved to: $OUTPUT_PATH" >&2
+
+            jq -n --arg uri "$VIDEO_URI" --arg path "$OUTPUT_PATH" \
+                '{"status": "succeeded", "videoUri": $uri, "savedTo": $path}'
         else
-            echo '{"status": "SUCCEEDED", "videoUri": "'"$VIDEO_URI"'"}'
+            jq -n --arg uri "$VIDEO_URI" '{"status": "succeeded", "videoUri": $uri}'
         fi
     else
         echo "Status: SUCCEEDED (no video URL in response)" >&2
-        echo "$RESPONSE" | jq '.'
+        echo "Full response:" >&2
+        echo "$RESPONSE" | jq '.' >&2
+        jq -n '{"status": "succeeded", "error": "missing_video_uri"}'
     fi
 else
     # Still running - extract progress if available
     STATE=$(echo "$METADATA" | jq -r '.state // "RUNNING"')
-    PROGRESS=$(echo "$METADATA" | jq -r '.progressPercent // "unknown"')
+    PROGRESS=$(echo "$METADATA" | jq -r '.progressPercent // null')
 
     echo "Status: $STATE" >&2
-    if [ "$PROGRESS" != "unknown" ] && [ "$PROGRESS" != "null" ]; then
+    if [ "$PROGRESS" != "null" ]; then
         echo "Progress: ${PROGRESS}%" >&2
+        jq -n --arg state "$STATE" --arg progress "$PROGRESS" \
+            '{"status": ($state | ascii_downcase), "progress": ($progress | tonumber)}'
+    else
+        jq -n --arg state "$STATE" '{"status": ($state | ascii_downcase)}'
     fi
-
-    echo '{"status": "'"$STATE"'", "progress": "'"$PROGRESS"'"}'
 fi

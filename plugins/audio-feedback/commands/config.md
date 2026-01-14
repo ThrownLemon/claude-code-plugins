@@ -27,13 +27,15 @@ View and modify audio feedback settings for sound effects and voice announcement
 
 ## Events and Feedback
 
-| Event | Sound | Voice | Description |
-|-------|-------|-------|-------------|
-| SessionStart | Yes | Yes | Session begins - welcome message |
-| SessionEnd | Yes | Yes | Session ends - farewell message |
-| UserPromptSubmit | Yes | No | User submits input |
-| PostToolUse | Yes | No | Tool completes execution |
-| SubagentStop | Yes | Yes | Subagent task completes |
+| Event | Sound | Voice | Control Variables |
+|-------|-------|-------|-------------------|
+| SessionStart | Yes | Yes | `AUDIO_FEEDBACK_SOUNDS`, `AUDIO_FEEDBACK_VOICE` |
+| SessionEnd | Yes | Yes | `AUDIO_FEEDBACK_SOUNDS`, `AUDIO_FEEDBACK_VOICE` |
+| UserPromptSubmit | Yes | No | `AUDIO_FEEDBACK_SOUNDS`, `AUDIO_FEEDBACK_PROMPT_SOUND` |
+| PostToolUse | Yes | No | `AUDIO_FEEDBACK_SOUNDS`, `AUDIO_FEEDBACK_TOOL_SOUND` |
+| SubagentStop | Yes | Yes | `AUDIO_FEEDBACK_SOUNDS`, `AUDIO_FEEDBACK_VOICE` |
+
+**Note**: SessionStart, SessionEnd, and SubagentStop events only respect the master toggles (`AUDIO_FEEDBACK_SOUNDS` and `AUDIO_FEEDBACK_VOICE`). They cannot be toggled individually.
 
 ## Configuring Settings
 
@@ -44,6 +46,7 @@ Settings are controlled via environment variables. To modify:
 export AUDIO_FEEDBACK_SOUNDS=true
 export AUDIO_FEEDBACK_VOICE=true
 export AUDIO_FEEDBACK_VOICE_NAME=af_heart
+export KOKORO_TTS_URL=http://localhost:8880
 ```
 
 ### Option 2: Project .env File
@@ -52,6 +55,7 @@ Create or edit `.env` in your project root:
 AUDIO_FEEDBACK_SOUNDS=true
 AUDIO_FEEDBACK_VOICE=true
 AUDIO_FEEDBACK_VOICE_NAME=af_heart
+KOKORO_TTS_URL=http://localhost:8880
 ```
 
 ### Option 3: Shell RC File
@@ -59,14 +63,14 @@ Add exports to `~/.zshrc` or `~/.bashrc` for persistent settings.
 
 ## Custom Sounds
 
-Place custom `.wav` files in the plugin's `sounds/` directory:
-- `tool-complete.wav` - Tool completion
-- `session-start.wav` - Session start
-- `session-end.wav` - Session end
-- `prompt-submit.wav` - Prompt submission
-- `task-complete.wav` - Task completion
+Place custom sound files in the plugin's `sounds/` directory:
+- `tool-complete.wav` or `tool-complete.aiff` - Tool completion
+- `session-start.wav` or `session-start.aiff` - Session start
+- `session-end.wav` or `session-end.aiff` - Session end
+- `prompt-submit.wav` or `prompt-submit.aiff` - Prompt submission
+- `task-complete.wav` or `task-complete.aiff` - Task completion
 
-If custom sounds aren't present, macOS system sounds are used as fallback.
+The plugin checks for `.wav` first, then `.aiff`/`.aif`. If custom sounds aren't present, system sounds are used as fallback (macOS only).
 
 ## Available Kokoro Voices
 
@@ -78,9 +82,17 @@ Common voice options for `AUDIO_FEEDBACK_VOICE_NAME`:
 
 Check your Kokoro TTS server for all available voices.
 
+## Platform Support
+
+The plugin automatically detects available audio players:
+- **macOS**: `afplay` (built-in)
+- **Linux**: `paplay` (PulseAudio), `aplay` (ALSA), or `play` (SoX)
+
+If no audio player is found, the plugin silently skips playback without errors.
+
 ## Requirements
 
-- **Sound effects**: macOS with `afplay` (included by default)
+- **Sound effects**: Audio player available on system (see Platform Support)
 - **Voice announcements**: Kokoro TTS server running at the configured endpoint
 
 ## Steps

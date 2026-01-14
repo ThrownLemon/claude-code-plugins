@@ -34,7 +34,7 @@ This command checks the status of a video generation job and reports:
 ## Parameters
 
 - **job-id** (required): The job or operation ID
-  - Veo: Long operation name from Gemini API
+  - Veo: Operation name from Gemini API
   - Sora: Video ID from creation response
 
 - **provider**: Which API to check
@@ -45,36 +45,54 @@ This command checks the status of a video generation job and reports:
 ## Job ID Formats
 
 **Google Veo**:
+Format: `models/{model-id}/operations/{operation-id}`
 ```
-operations/generate-video-xxxxxxxxxxxxx
+models/veo-3.1-generate-preview/operations/abcd1234-5678-90ef
 ```
 
 **OpenAI Sora**:
+Format: `video_{id}` (24+ character alphanumeric)
 ```
-vid_xxxxxxxxxxxxxxxxxxxx
+video_68d7512d078491a2b3c4d5e6f7890abc
 ```
 
 ## Examples
 
 ```
-/video-gen:status --job-id operations/generate-video-abc123def456
-/video-gen:status --job-id vid_abc123def456789
+/video-gen:status --job-id models/veo-3.1-generate-preview/operations/abc123
+/video-gen:status --job-id video_abc123def456789
 /video-gen:status --job-id abc123 --provider sora
 ```
 
 ## Status Values
 
 **Veo (Gemini API)**:
-- `RUNNING` - Generation in progress
-- `SUCCEEDED` - Video ready
-- `FAILED` - Generation failed
-- `CANCELLED` - Operation cancelled
+Veo uses long-running operations with a `done` boolean field:
+- `done: false` - Generation in progress (check `metadata.state` for details)
+- `done: true` - Operation complete (check `response` for video or `error` for failure)
+
+Metadata states: `RUNNING`, `PENDING`
+Result: Video URI in `response.generatedVideos[0].video.uri`
 
 **Sora (OpenAI)**:
 - `queued` - Waiting to start
-- `in_progress` - Generating
-- `completed` - Video ready
+- `preprocessing` - Preparing for generation
+- `processing` / `in_progress` - Generating video
+- `completed` - Video ready (call `/videos/{id}/content` for download URL)
 - `failed` - Generation failed
+- `canceled` - Generation was canceled
+
+Webhook events: `video.completed`, `video.failed`
+
+## Retrieving Completed Videos
+
+**Veo**: Download URL is in the operation response at `response.generatedVideos[0].video.uri`
+
+**Sora**: After status shows `completed`, call the content endpoint:
+```
+GET /v1/videos/{video_id}/content
+```
+Returns a time-limited download URL. Download immediately as URLs may expire.
 
 ## Usage Notes
 
