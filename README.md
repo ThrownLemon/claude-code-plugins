@@ -230,12 +230,13 @@ Spawn parallel AI agents or CLI commands in new terminal windows. Now with **git
 /plugin install fork-terminal@travis-plugins
 ```
 
-**Two Modes:**
+**Three Modes:**
 
 | Mode | Use Case | Git Isolation |
 |------|----------|---------------|
 | **Standard** | Quick parallel help on current task | No - same directory |
 | **Worktree** | Parallel feature development | Yes - separate branches |
+| **Tournament** | Multiple CLIs compete on same task | Yes - separate branches per CLI |
 
 **Execution Modes (Worktree):**
 
@@ -248,12 +249,12 @@ When spawning worktree workers, you'll be prompted to choose:
 
 **Supported AI Tools:**
 
-| Tool | Trigger Pattern | Default Model | Fast Model | Heavy Model |
-|------|-----------------|---------------|------------|-------------|
-| Claude Code | "use claude code..." | opus | haiku | opus |
-| Codex CLI | "use codex..." | gpt-5.1-codex-max | codex-mini | codex-max |
-| Gemini CLI | "use gemini..." | gemini-3-pro-preview | flash | gemini-pro |
-| Raw CLI | "run..." | N/A | N/A | N/A |
+| Tool | Trigger Pattern | Default Model | Fast Model |
+|------|-----------------|---------------|------------|
+| Claude Code | "use claude code..." | opus | sonnet |
+| Codex CLI | "use codex..." | gpt-5.2-codex | gpt-5.1-codex-mini |
+| Gemini CLI | "use gemini..." | gemini-3-pro-preview | gemini-3-flash-preview |
+| Raw CLI | "run..." | N/A | N/A |
 
 **Model Modifiers:**
 - **fast**: Use lighter/faster models for quick tasks
@@ -287,16 +288,34 @@ When spawning worktree workers, you'll be prompted to choose:
 > Fork terminal in worktree from develop to fix the login bug
 ```
 
+**Example Triggers (Tournament Mode):**
+```
+> Tournament mode to implement user authentication
+> Have claude, gemini, and codex compete on adding caching
+> Race to solve the performance issue
+> Tournament with claude and gemini to refactor the API
+```
+
+**Tournament Mode Workflow:**
+
+1. **Spawn**: Creates worktrees for each CLI (e.g., Claude, Gemini, Codex)
+2. **Compete**: Workers independently solve the same task
+3. **Complete**: Workers write `DONE.md` when finished
+4. **Review**: Main session compares solutions with `/fork-terminal:review`
+5. **Combine**: Create a combined branch with best parts from each solution
+
 **Features:**
 - Context handoff with conversation summaries
 - Multiple concurrent agent sessions (up to 4 workers)
 - Cross-tool compatibility (Claude, Codex, Gemini)
 - Raw command execution for non-AI tasks
 - **Git worktree support** for branch-isolated parallel work
+- **Tournament mode** for multi-CLI competition on same task
 - **Warp terminal automation** with reliable command execution
 - **tmux integration** for terminal multiplexing
 - Worker coordination and tracking via JSON registry
 - TASK.md context files for spawned workers
+- AI-assisted solution review and combined branch creation
 
 #### Commands
 
@@ -315,9 +334,25 @@ When spawning worktree workers, you'll be prompted to choose:
 | `--force` | Force removal with uncommitted changes | false |
 | `--delete-branch` | Also delete the git branch | false |
 
+**`/fork-terminal:status`** - Check tournament progress
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--tournament` | Specific tournament ID | all active |
+| `--format` | Output format: `table` or `json` | `table` |
+
+**`/fork-terminal:review`** - Review tournament solutions
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--tournament` | Tournament ID | most recent |
+| `--format` | Report format: `markdown` or `json` | `markdown` |
+
 ```bash
 /fork-terminal:list
 /fork-terminal:remove --path ../my-project-auth --delete-branch --force
+/fork-terminal:status --tournament tournament-1234567890
+/fork-terminal:review --tournament tournament-1234567890
 ```
 
 ---
