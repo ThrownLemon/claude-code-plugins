@@ -28,8 +28,8 @@ from coordination import register_worker
 CLI_CONFIGS = {
     "claude": {
         "command_template": "claude --model {model} --dangerously-skip-permissions {mode_flag} '{prompt}'",
-        "default_model": "opus",
-        "fast_model": "sonnet",
+        "default_model": "opus-4-5",
+        "fast_model": "sonnet-4-5",
         "interactive_flag": "",  # No -p flag for interactive
         "autonomous_flag": "-p"  # -p flag for autonomous (run and exit)
     },
