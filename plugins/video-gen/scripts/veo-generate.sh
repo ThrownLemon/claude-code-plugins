@@ -237,6 +237,14 @@ RESPONSE=$(curl -sS --connect-timeout 30 --max-time 120 -X POST \
     -H "x-goog-api-key: ${API_KEY}" \
     -d "$GEN_CONFIG")
 
+# Validate response is valid JSON
+if ! echo "$RESPONSE" | jq '.' > /dev/null 2>&1; then
+    echo "Error: Invalid JSON response from API" >&2
+    # Truncate raw response to avoid leaking sensitive data
+    echo "Raw response (truncated): ${RESPONSE:0:200}" >&2
+    exit 1
+fi
+
 # Check for errors
 if echo "$RESPONSE" | jq -e '.error' > /dev/null 2>&1; then
     ERROR_MSG=$(echo "$RESPONSE" | jq -r '.error.message // "Unknown error"')

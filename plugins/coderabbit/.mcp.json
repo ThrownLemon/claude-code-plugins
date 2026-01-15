@@ -2,7 +2,7 @@
   "mcpServers": {
     "coderabbitai": {
       "command": "npx",
-      "args": ["-y", "coderabbitai-mcp@latest"],
+      "args": ["-y", "coderabbitai-mcp@1.1.1"],
       "env": {
         "GITHUB_PAT": "${GITHUB_PAT}"
       }

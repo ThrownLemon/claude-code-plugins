@@ -172,10 +172,17 @@ def generate_with_google(prompt: str, model: str, aspect_ratio: str,
                 "error": "No images returned from API"
             }
 
-    except Exception as e:
+    except OSError as e:
         return {
             "success": False,
-            "error": str(e)
+            "error": f"File I/O error: {e}"
+        }
+    except Exception as e:
+        # Log the full exception type for debugging
+        error_type = type(e).__name__
+        return {
+            "success": False,
+            "error": f"{error_type}: {e}"
         }
 
 
@@ -256,10 +263,17 @@ def generate_with_openai(prompt: str, model: str, size: str,
                 "error": "No images returned from API"
             }
 
-    except Exception as e:
+    except OSError as e:
         return {
             "success": False,
-            "error": str(e)
+            "error": f"File I/O error: {e}"
+        }
+    except Exception as e:
+        # Log the full exception type for debugging
+        error_type = type(e).__name__
+        return {
+            "success": False,
+            "error": f"{error_type}: {e}"
         }
 
 

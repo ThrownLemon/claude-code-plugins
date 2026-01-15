@@ -483,8 +483,19 @@ def spawn_claude_in_worktree(
                 "status": status
             })
 
+        except subprocess.CalledProcessError as e:
+            results["errors"].append(f"Worker {worker_num}: Git/subprocess error: {e}")
+            results["success"] = False
+        except OSError as e:
+            results["errors"].append(f"Worker {worker_num}: File I/O error: {e}")
+            results["success"] = False
+        except ValueError as e:
+            results["errors"].append(f"Worker {worker_num}: Invalid input: {e}")
+            results["success"] = False
         except Exception as e:
-            results["errors"].append(f"Worker {worker_num}: {str(e)}")
+            # Log unexpected errors with type for debugging
+            error_type = type(e).__name__
+            results["errors"].append(f"Worker {worker_num}: {error_type}: {e}")
             results["success"] = False
 
     # Set overall success based on workers spawned

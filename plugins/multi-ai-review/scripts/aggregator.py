@@ -11,6 +11,7 @@ import os
 import sys
 from collections import defaultdict
 from pathlib import Path
+from typing import Optional
 
 from result_parser import parse_cli_output
 
@@ -30,8 +31,33 @@ def get_output_dir() -> Path:
     return default
 
 
-def similarity_score(finding1: dict, finding2: dict) -> float:
-    """Calculate similarity between two findings."""
+def _tokenize_description(description: str) -> frozenset:
+    """Tokenize a description, strip punctuation, and remove stop words.
+
+    Returns a frozenset for efficient comparison operations.
+    """
+    if not description:
+        return frozenset()
+    # Strip punctuation from each word for better matching
+    words = set(
+        word.strip(".,;:!?\"'()[]{}")
+        for word in description.lower().split()
+    )
+    # Remove empty strings that may result from stripping
+    words.discard("")
+    return frozenset(words - _STOP_WORDS)
+
+
+def similarity_score(finding1: dict, finding2: dict,
+                     tokens1: Optional[frozenset] = None, tokens2: Optional[frozenset] = None) -> float:
+    """Calculate similarity between two findings.
+
+    Args:
+        finding1: First finding dict.
+        finding2: Second finding dict.
+        tokens1: Pre-computed tokens for finding1 (optional, for performance).
+        tokens2: Pre-computed tokens for finding2 (optional, for performance).
+    """
     score = 0.0
 
     # Same file is a strong indicator
@@ -59,16 +85,12 @@ def similarity_score(finding1: dict, finding2: dict) -> float:
     if finding1.get("severity") == finding2.get("severity"):
         score += 0.1
 
-    # Description similarity (simple word overlap)
-    if finding1.get("description") and finding2.get("description"):
-        words1 = set(finding1["description"].lower().split())
-        words2 = set(finding2["description"].lower().split())
-        # Remove common stop words using pre-computed set
-        words1 = words1 - _STOP_WORDS
-        words2 = words2 - _STOP_WORDS
-        if words1 and words2:
-            overlap = len(words1 & words2) / len(words1 | words2)
-            score += overlap * 0.3
+    # Description similarity (use pre-computed tokens if available)
+    words1 = tokens1 if tokens1 is not None else _tokenize_description(finding1.get("description", ""))
+    words2 = tokens2 if tokens2 is not None else _tokenize_description(finding2.get("description", ""))
+    if words1 and words2:
+        overlap = len(words1 & words2) / len(words1 | words2)
+        score += overlap * 0.3
 
     return min(score, 1.0)
 
@@ -78,10 +100,20 @@ def find_matches(
     threshold: float = 0.5
 ) -> list[dict]:
     """Find matching findings across CLIs."""
-    # Mark all findings as unmatched initially
+    # Pre-compute tokenized descriptions for all findings (O(n) vs O(n^2))
+    # Use (cli, index) tuple as stable cache key instead of id() which is fragile
+    # Create shallow copies to avoid mutating input dicts
+    token_cache: dict[tuple[str, int], frozenset] = {}
+    findings_copy: dict[str, list[dict]] = {}
     for cli, cli_findings in findings.items():
-        for f in cli_findings:
-            f["_matched"] = False
+        findings_copy[cli] = []
+        for idx, f in enumerate(cli_findings):
+            f_copy = f.copy()  # Shallow copy to avoid mutating caller's data
+            f_copy["_matched"] = False
+            f_copy["_cache_key"] = (cli, idx)  # Store stable key for later lookup
+            findings_copy[cli].append(f_copy)
+            token_cache[(cli, idx)] = _tokenize_description(f.get("description", ""))
+    findings = findings_copy  # Use copies for the rest of the function
 
     matched_groups = []
 
@@ -96,7 +128,8 @@ def find_matches(
                     if f2.get("_matched"):
                         continue
 
-                    score = similarity_score(f1, f2)
+                    # Pass pre-computed tokens to avoid re-tokenization
+                    score = similarity_score(f1, f2, token_cache[f1["_cache_key"]], token_cache[f2["_cache_key"]])
                     if score >= threshold:
                         # Find or create a group
                         group_found = False
@@ -185,7 +218,7 @@ def aggregate_findings(review_id: str) -> dict:
     for cli, cli_findings in findings.items():
         for f in cli_findings:
             if not f.get("_matched"):
-                # Remove internal _matched flag
+                # Remove internal flags (_matched, _cache_key)
                 clean_finding = {k: v for k, v in f.items() if not k.startswith("_")}
                 unique[cli].append(clean_finding)
 
