@@ -1,0 +1,23 @@
+{
+  "name": "gruvbox",
+  "description": "Warm retro theme inspired by Gruvbox",
+  "colors": {
+    "model": {"fg": "bright_yellow", "bold": true},
+    "git_branch": {"fg": "bright_magenta"},
+    "git_clean": {"fg": "bright_green"},
+    "git_dirty": {"fg": "bright_yellow"},
+    "context_low": {"fg": "bright_green"},
+    "context_mid": {"fg": "bright_yellow"},
+    "context_high": {"fg": "bright_red"},
+    "cost": {"fg": "bright_magenta"},
+    "time": {"fg": "bright_blue"},
+    "mcp_ok": {"fg": "bright_green"},
+    "mcp_error": {"fg": "bright_red"},
+    "separator": {"fg": "gray"},
+    "directory": {"fg": "bright_cyan"}
+  },
+  "powerline": {
+    "separator": "",
+    "separator_thin": ""
+  }
+}

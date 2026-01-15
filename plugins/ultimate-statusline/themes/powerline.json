@@ -1,0 +1,23 @@
+{
+  "name": "powerline",
+  "description": "Classic Powerline theme with arrow separators",
+  "colors": {
+    "model": {"fg": "white", "bg": "blue", "bold": true},
+    "git_branch": {"fg": "white", "bg": "magenta"},
+    "git_clean": {"fg": "black", "bg": "green"},
+    "git_dirty": {"fg": "black", "bg": "yellow"},
+    "context_low": {"fg": "white", "bg": "green"},
+    "context_mid": {"fg": "black", "bg": "yellow"},
+    "context_high": {"fg": "white", "bg": "red"},
+    "cost": {"fg": "white", "bg": "magenta"},
+    "time": {"fg": "white", "bg": "blue"},
+    "mcp_ok": {"fg": "black", "bg": "green"},
+    "mcp_error": {"fg": "white", "bg": "red"},
+    "separator": {"fg": "gray"},
+    "directory": {"fg": "white", "bg": "blue"}
+  },
+  "powerline": {
+    "separator": "\ue0b0",
+    "separator_thin": "\ue0b1"
+  }
+}

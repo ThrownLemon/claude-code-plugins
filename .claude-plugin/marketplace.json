@@ -96,6 +96,16 @@
       },
       "source": "./plugins/multi-ai-review",
       "category": "productivity"
+    },
+    {
+      "name": "ultimate-statusline",
+      "description": "Ultimate statusline for Claude Code - 30+ widgets including model info, git status, context usage, costs, burn rate, MCP status, and more with customizable themes",
+      "version": "1.0.0",
+      "author": {
+        "name": "ThrownLemon"
+      },
+      "source": "./plugins/ultimate-statusline",
+      "category": "productivity"
     }
   ]
 }

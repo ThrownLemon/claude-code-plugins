@@ -1,0 +1,8 @@
+{
+  "name": "ultimate-statusline",
+  "description": "Ultimate statusline for Claude Code - 30+ widgets combining the best features from ccstatusline, claude-powerline, and more",
+  "version": "1.0.0",
+  "author": {
+    "name": "ThrownLemon"
+  }
+}

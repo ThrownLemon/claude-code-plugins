@@ -1,0 +1,23 @@
+{
+  "name": "rose-pine",
+  "description": "Soft pastel theme inspired by Rosé Pine",
+  "colors": {
+    "model": {"fg": "magenta", "bold": true},
+    "git_branch": {"fg": "cyan"},
+    "git_clean": {"fg": "green"},
+    "git_dirty": {"fg": "yellow"},
+    "context_low": {"fg": "green"},
+    "context_mid": {"fg": "yellow"},
+    "context_high": {"fg": "red"},
+    "cost": {"fg": "magenta"},
+    "time": {"fg": "cyan"},
+    "mcp_ok": {"fg": "green"},
+    "mcp_error": {"fg": "red"},
+    "separator": {"fg": "magenta"},
+    "directory": {"fg": "cyan"}
+  },
+  "powerline": {
+    "separator": "",
+    "separator_thin": ""
+  }
+}

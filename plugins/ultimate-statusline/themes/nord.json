@@ -1,0 +1,23 @@
+{
+  "name": "nord",
+  "description": "Cool arctic theme inspired by Nord",
+  "colors": {
+    "model": {"fg": "cyan", "bold": true},
+    "git_branch": {"fg": "magenta"},
+    "git_clean": {"fg": "green"},
+    "git_dirty": {"fg": "yellow"},
+    "context_low": {"fg": "cyan"},
+    "context_mid": {"fg": "yellow"},
+    "context_high": {"fg": "red"},
+    "cost": {"fg": "magenta"},
+    "time": {"fg": "cyan"},
+    "mcp_ok": {"fg": "green"},
+    "mcp_error": {"fg": "red"},
+    "separator": {"fg": "blue"},
+    "directory": {"fg": "cyan"}
+  },
+  "powerline": {
+    "separator": "",
+    "separator_thin": ""
+  }
+}

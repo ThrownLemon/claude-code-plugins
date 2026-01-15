@@ -1,0 +1,23 @@
+{
+  "name": "default",
+  "description": "Default theme with balanced colors",
+  "colors": {
+    "model": {"fg": "cyan", "bold": true},
+    "git_branch": {"fg": "magenta"},
+    "git_clean": {"fg": "green"},
+    "git_dirty": {"fg": "yellow"},
+    "context_low": {"fg": "green"},
+    "context_mid": {"fg": "yellow"},
+    "context_high": {"fg": "red"},
+    "cost": {"fg": "magenta"},
+    "time": {"fg": "blue"},
+    "mcp_ok": {"fg": "green"},
+    "mcp_error": {"fg": "red"},
+    "separator": {"fg": "gray"},
+    "directory": {"fg": "blue"}
+  },
+  "powerline": {
+    "separator": "",
+    "separator_thin": ""
+  }
+}

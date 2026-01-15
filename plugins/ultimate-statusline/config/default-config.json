@@ -1,0 +1,173 @@
+{
+  "layout": [
+    ["model_emoji", "model_name", "separator", "git_branch", "git_changes", "separator", "context_percent", "separator", "session_cost", "burn_rate", "separator", "session_clock", "separator", "mcp_status"]
+  ],
+  "widgets": {
+    "model_emoji": {
+      "enabled": true,
+      "icons": {
+        "opus": "🧠",
+        "sonnet": "🎵",
+        "haiku": "⚡"
+      }
+    },
+    "model_name": {
+      "enabled": true,
+      "short": true
+    },
+    "git_branch": {
+      "enabled": true,
+      "icon": "",
+      "max_length": 20
+    },
+    "git_changes": {
+      "enabled": true,
+      "show_clean": false,
+      "icons": {
+        "added": "+",
+        "deleted": "-",
+        "modified": "~",
+        "clean": "✓"
+      }
+    },
+    "git_worktree": {
+      "enabled": false
+    },
+    "commits_today": {
+      "enabled": false,
+      "icon": ""
+    },
+    "directory": {
+      "enabled": false,
+      "style": "basename",
+      "max_segments": 2,
+      "icon": ""
+    },
+    "context_percent": {
+      "enabled": true,
+      "show_bar": true,
+      "bar_length": 10,
+      "bar_chars": ["░", "█"],
+      "thresholds": {
+        "low": 50,
+        "mid": 75,
+        "high": 90
+      }
+    },
+    "context_length": {
+      "enabled": false,
+      "format": "short"
+    },
+    "context_usable": {
+      "enabled": false
+    },
+    "tokens_input": {
+      "enabled": false
+    },
+    "tokens_output": {
+      "enabled": false
+    },
+    "tokens_cached": {
+      "enabled": false
+    },
+    "tokens_total": {
+      "enabled": false,
+      "format": "short"
+    },
+    "session_cost": {
+      "enabled": true,
+      "icon": "$",
+      "decimals": 2
+    },
+    "daily_cost": {
+      "enabled": false,
+      "icon": "📅"
+    },
+    "weekly_cost": {
+      "enabled": false,
+      "icon": "📆"
+    },
+    "monthly_cost": {
+      "enabled": false,
+      "icon": "🗓"
+    },
+    "burn_rate": {
+      "enabled": true,
+      "format": "$%.2f/hr",
+      "icon": "🔥"
+    },
+    "session_clock": {
+      "enabled": true,
+      "format": "short",
+      "icon": "⏱"
+    },
+    "block_timer": {
+      "enabled": false,
+      "show_progress": true,
+      "window_hours": 5
+    },
+    "reset_timer": {
+      "enabled": false,
+      "states": ["active", "calculating", "hidden"]
+    },
+    "mcp_status": {
+      "enabled": true,
+      "show_count": true,
+      "show_names": false,
+      "icons": {
+        "ok": "🟢",
+        "error": "🔴",
+        "unknown": "🟡"
+      }
+    },
+    "tmux_info": {
+      "enabled": false,
+      "show_window": true
+    },
+    "version": {
+      "enabled": false,
+      "icon": "v"
+    },
+    "output_style": {
+      "enabled": false
+    },
+    "response_time": {
+      "enabled": false,
+      "format": "ms"
+    },
+    "lines_changed": {
+      "enabled": false,
+      "icons": {
+        "added": "+",
+        "removed": "-"
+      }
+    },
+    "message_count": {
+      "enabled": false
+    },
+    "budget_alert": {
+      "enabled": false,
+      "thresholds": {
+        "session": 10.0,
+        "daily": 50.0,
+        "weekly": 200.0
+      },
+      "icon": "⚠️"
+    },
+    "custom_text": {
+      "enabled": false,
+      "text": ""
+    },
+    "custom_command": {
+      "enabled": false,
+      "command": ""
+    },
+    "separator": {
+      "char": " │ ",
+      "powerline": ""
+    }
+  },
+  "theme": "default",
+  "powerline": false,
+  "padding": 0
+}

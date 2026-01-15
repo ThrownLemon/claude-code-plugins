@@ -1,0 +1,23 @@
+{
+  "name": "tokyo-night",
+  "description": "Neon cyberpunk theme inspired by Tokyo Night",
+  "colors": {
+    "model": {"fg": "magenta", "bold": true},
+    "git_branch": {"fg": "cyan"},
+    "git_clean": {"fg": "green"},
+    "git_dirty": {"fg": "yellow"},
+    "context_low": {"fg": "cyan"},
+    "context_mid": {"fg": "yellow"},
+    "context_high": {"fg": "magenta"},
+    "cost": {"fg": "bright_magenta"},
+    "time": {"fg": "blue"},
+    "mcp_ok": {"fg": "green"},
+    "mcp_error": {"fg": "red"},
+    "separator": {"fg": "blue"},
+    "directory": {"fg": "cyan"}
+  },
+  "powerline": {
+    "separator": "",
+    "separator_thin": ""
+  }
+}
