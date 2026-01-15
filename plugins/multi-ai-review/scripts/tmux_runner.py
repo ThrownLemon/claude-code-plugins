@@ -197,6 +197,7 @@ def open_terminal_with_tmux(session_name: str) -> bool:
 
     if warp_exists:
         # Use Warp - open new tab and type command
+        # Match fork_terminal.py timing for reliable keystroke entry
         escaped_cmd = attach_cmd.replace("\\", "\\\\").replace('"', '\\"')
         applescript = f'''
             tell application "Warp" to activate
@@ -206,7 +207,7 @@ def open_terminal_with_tmux(session_name: str) -> bool:
                     keystroke "t" using command down
                     delay 0.5
                     keystroke "{escaped_cmd}"
-                    delay 0.3
+                    delay 0.8
                     keystroke return
                 end tell
             end tell
