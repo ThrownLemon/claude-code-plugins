@@ -14,6 +14,7 @@ You receive these from the parent command:
 - `$FOCUS`: Review focus area (all, security, quality, architecture, performance)
 - `$EXCLUDE`: Glob patterns to exclude
 - `$TIMEOUT`: Timeout in minutes per CLI (default: 10)
+- `$MODE`: Execution mode - "tmux" (default, visual) or "background" (headless)
 
 ## Workflow
 
@@ -23,6 +24,11 @@ First, verify which CLIs are installed:
 
 ```bash
 python3 ${CLAUDE_PLUGIN_ROOT}/scripts/review_runner.py check
+```
+
+Also check tmux is installed (for tmux mode):
+```bash
+which tmux
 ```
 
 Report which CLIs are available. If any requested CLIs are missing, inform the user with installation instructions but continue with available CLIs.
@@ -90,7 +96,50 @@ Focus on algorithmic efficiency, memory management, database queries, caching op
 
 ### Step 4: Execute Parallel Reviews
 
-Run the review runner:
+#### Tmux Mode (Default)
+
+Use the tmux runner to execute reviews in split panes:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tmux_runner.py \
+  --clis "$CLIS" \
+  --prompt "$REVIEW_PROMPT" \
+  --project-root "$(pwd)" \
+  --timeout "$TIMEOUT" \
+  --no-attach \
+  --json
+```
+
+This creates a tmux session with split panes (one per CLI) so the user can watch all reviews simultaneously.
+
+After creating the session, open a new terminal tab to show the reviews:
+
+```bash
+# Get the session name from the JSON output, then open in new terminal
+osascript -e 'tell application "Terminal" to activate' \
+  -e 'tell application "System Events" to tell process "Terminal" to keystroke "t" using command down' \
+  -e 'delay 0.3' \
+  -e 'tell application "System Events" to keystroke "tmux attach -t SESSION_NAME"' \
+  -e 'tell application "System Events" to key code 36'
+```
+
+Or for Warp:
+```bash
+osascript -e 'tell application "Warp" to activate' \
+  -e 'tell application "System Events" to tell process "Warp" to keystroke "t" using command down' \
+  -e 'delay 0.3' \
+  -e 'tell application "System Events" to tell process "Warp" to keystroke "tmux attach -t SESSION_NAME"' \
+  -e 'tell application "System Events" to tell process "Warp" to key code 36'
+```
+
+Tell the user:
+- The tmux session is running with all CLIs in split panes
+- They can watch progress in the new terminal tab
+- When done, they can run `/multi-ai-review:report` to see the comparison
+
+#### Background Mode
+
+For headless execution, use the original runner:
 
 ```bash
 python3 ${CLAUDE_PLUGIN_ROOT}/scripts/review_runner.py run \
@@ -101,18 +150,16 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/review_runner.py run \
   --json
 ```
 
-This will:
-1. Create a unique review ID
-2. Spawn each CLI in parallel background processes
-3. Monitor for completion or timeout
-4. Save raw output to JSON files
-
 ### Step 5: Monitor and Report Progress
 
-The script will output progress as each CLI completes. Keep the user informed:
-- When each CLI starts
-- When each CLI completes (or fails/times out)
-- Overall progress percentage
+For tmux mode:
+- Tell the user the session name and how to attach
+- Explain tmux controls (Ctrl+B z to zoom, Ctrl+B D to detach)
+- Let them know output is being saved to `~/.multi-ai-review/<review-id>/`
+
+For background mode:
+- Report progress as each CLI completes
+- Show which CLIs are still running
 
 ### Step 6: Handle Failures
 
@@ -126,15 +173,10 @@ At minimum, you need ONE successful CLI output to proceed.
 
 ### Step 7: Generate Report
 
-Once reviews complete, delegate to the report-generator agent:
+Once reviews complete, generate the comparison report:
 
-```
-Reviews complete! Generating comparison report...
-```
-
-Then invoke:
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/report_formatter.py \
+cd ${CLAUDE_PLUGIN_ROOT}/scripts && python3 report_formatter.py \
   --review "$REVIEW_ID" \
   --format markdown
 ```
@@ -146,6 +188,7 @@ Present the formatted report to the user, highlighting:
 
 ## Important Guidelines
 
+- Default to tmux mode for visual feedback
 - Always check prerequisites before starting
 - Use the Python scripts for parallel execution - don't try to run CLIs directly
 - Handle timeouts gracefully (default 10 minutes per CLI)

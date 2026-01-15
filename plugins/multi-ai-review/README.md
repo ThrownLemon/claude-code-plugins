@@ -4,7 +4,8 @@ Run parallel code reviews with multiple AI CLIs (Claude, Gemini, Codex) and get 
 
 ## Features
 
-- **Parallel Execution**: Run all three AI CLIs simultaneously
+- **Visual Tmux Mode**: Watch all 3 CLIs reviewing your code simultaneously in split panes
+- **Parallel Execution**: Run all three AI CLIs at the same time
 - **Consensus Analysis**: See which findings all AIs agree on (highest confidence)
 - **Majority Detection**: Identify issues found by 2+ AIs
 - **Unique Insights**: Discover findings only one AI caught
@@ -110,14 +111,44 @@ The plugin also responds to natural language:
 - "Compare AI opinions on this project"
 - "Do a comprehensive code review"
 
+## Tmux Mode (Default)
+
+By default, reviews run in a tmux session with split panes so you can watch all CLIs working simultaneously:
+
+```
+┌─────────────────────┬─────────────────────┐
+│   🤖 CLAUDE         │   🤖 GEMINI         │
+│                     │                     │
+│   Reviewing...      │   Reviewing...      │
+│                     │                     │
+├─────────────────────┴─────────────────────┤
+│   🤖 CODEX                                │
+│                                           │
+│   Reviewing...                            │
+│                                           │
+└───────────────────────────────────────────┘
+```
+
+**Tmux Controls:**
+
+| Keys | Action |
+|------|--------|
+| `Ctrl+B` then `D` | Detach (reviews continue in background) |
+| `Ctrl+B` then `z` | Zoom/unzoom current pane |
+| `Ctrl+B` then `o` | Switch between panes |
+| `Ctrl+B` then `[` | Scroll mode (q to exit) |
+
+To run in headless mode instead: `/multi-ai-review:scan --mode background`
+
 ## How It Works
 
-1. **Parallel Execution**: Each CLI runs in a separate process with the same review prompt
-2. **Output Collection**: Raw outputs are saved to JSON files
-3. **Parsing**: Each CLI's output is normalized to a common finding format
-4. **Matching**: Similar findings are matched using file/line proximity and description similarity
-5. **Aggregation**: Findings are grouped by how many CLIs agree
-6. **Reporting**: A formatted report shows consensus first, then majority, then unique
+1. **Tmux Session**: Creates split panes, one per CLI, opens in new terminal tab
+2. **Parallel Execution**: Each CLI runs with the same review prompt
+3. **Output Collection**: Raw outputs are saved to files
+4. **Parsing**: Each CLI's output is normalized to a common finding format
+5. **Matching**: Similar findings are matched using file/line proximity and description similarity
+6. **Aggregation**: Findings are grouped by how many CLIs agree
+7. **Reporting**: A formatted report shows consensus first, then majority, then unique
 
 ## Example Output
 

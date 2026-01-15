@@ -13,6 +13,9 @@ arguments:
   - name: timeout
     description: "Timeout in minutes per CLI (default: 10)"
     required: false
+  - name: mode
+    description: "Execution mode: tmux (default, visual) or background (headless)"
+    required: false
 ---
 
 # Multi-AI Code Review Scan
@@ -23,9 +26,10 @@ Run a comprehensive code review of the entire project using multiple AI CLIs in 
 
 1. **Validates Prerequisites** - Checks which CLIs are installed
 2. **Analyzes Project** - Identifies project structure and files
-3. **Runs Parallel Reviews** - Executes Claude, Gemini, and Codex reviews simultaneously
-4. **Aggregates Findings** - Matches similar issues across reviewers
-5. **Generates Comparison** - Shows consensus, majority, and unique findings
+3. **Runs Parallel Reviews** - Executes Claude, Gemini, and Codex in tmux split panes
+4. **Watch in Real-Time** - Opens a new terminal tab to view all CLIs working
+5. **Aggregates Findings** - Matches similar issues across reviewers
+6. **Generates Comparison** - Shows consensus, majority, and unique findings
 
 ## Arguments
 
@@ -35,6 +39,7 @@ Run a comprehensive code review of the entire project using multiple AI CLIs in 
 | `--focus` | `all` | Review focus area |
 | `--exclude` | `.gitignore patterns` | Additional patterns to exclude |
 | `--timeout` | `10` | Minutes per CLI (max: 30) |
+| `--mode` | `tmux` | Execution mode: `tmux` (visual) or `background` (headless) |
 
 ### Focus Areas
 
@@ -47,7 +52,7 @@ Run a comprehensive code review of the entire project using multiple AI CLIs in 
 ## Examples
 
 ```bash
-# Full review with all CLIs
+# Full review with all CLIs (opens tmux in new terminal)
 /multi-ai-review:scan
 
 # Security-focused review
@@ -58,7 +63,20 @@ Run a comprehensive code review of the entire project using multiple AI CLIs in 
 
 # Exclude test files, longer timeout
 /multi-ai-review:scan --exclude "test/**,__tests__/**" --timeout 15
+
+# Run in background (headless, no tmux)
+/multi-ai-review:scan --mode background
 ```
+
+## Tmux Mode (Default)
+
+By default, reviews run in a tmux session with split panes so you can watch all CLIs simultaneously:
+
+- A new terminal tab opens automatically
+- Each CLI runs in its own pane
+- Use `Ctrl+B` then `z` to zoom a pane
+- Use `Ctrl+B` then `D` to detach (reviews continue)
+- Output is saved to `~/.multi-ai-review/<review-id>/`
 
 ## Output
 
