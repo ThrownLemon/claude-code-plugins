@@ -16,10 +16,12 @@ Options:
 """
 
 import argparse
+import ipaddress
 import json
 import os
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 # Add scripts directory to path for imports
 SCRIPT_DIR = Path(__file__).parent
@@ -31,6 +33,42 @@ from utils import (
     validate_api_key, parse_provider_model, format_size_for_openai,
     format_aspect_ratio_for_google, estimate_cost
 )
+
+
+def is_safe_url(url: str) -> bool:
+    """Validate URL to prevent SSRF attacks.
+
+    Rejects private IP ranges, localhost, and cloud metadata endpoints.
+    Returns True if URL is safe to fetch, False otherwise.
+    """
+    try:
+        parsed = urlparse(url)
+        host = parsed.hostname
+
+        if not host:
+            return False
+
+        # Check for localhost variants
+        if host in ('localhost', '127.0.0.1', '::1', '0.0.0.0'):
+            return False
+
+        # Check for cloud metadata endpoints
+        if host in ('169.254.169.254', 'metadata.google.internal',
+                    'metadata.google.com'):
+            return False
+
+        # Try to parse as IP address and check for private ranges
+        try:
+            ip = ipaddress.ip_address(host)
+            if ip.is_private or ip.is_loopback or ip.is_link_local:
+                return False
+        except ValueError:
+            # Not an IP address, hostname is fine
+            pass
+
+        return True
+    except Exception:
+        return False
 
 
 def generate_with_google(prompt: str, model: str, aspect_ratio: str,
@@ -164,6 +202,12 @@ def generate_with_openai(prompt: str, model: str, size: str,
                 saved_files.append(str(filepath))
             # DALL-E may return URL
             elif hasattr(image_data, "url") and image_data.url:
+                # Validate URL before downloading (defense in depth)
+                if not is_safe_url(image_data.url):
+                    return {
+                        "success": False,
+                        "error": f"Unsafe URL returned by API: {image_data.url}"
+                    }
                 import urllib.request
                 urllib.request.urlretrieve(image_data.url, filepath)
                 saved_files.append(str(filepath))

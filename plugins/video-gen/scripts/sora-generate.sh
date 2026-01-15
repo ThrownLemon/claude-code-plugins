@@ -32,6 +32,46 @@ EOF
     exit "${1:-1}"
 }
 
+# Validate URL to prevent SSRF attacks
+# Rejects private IP ranges, localhost, and cloud metadata endpoints
+validate_url() {
+    local url="$1"
+    local host
+
+    # Extract host from URL
+    host=$(echo "$url" | sed -E 's|^https?://([^/:]+).*|\1|')
+
+    # Reject localhost variants
+    if [[ "$host" =~ ^(localhost|127\.|0\.|::1|0000:).*$ ]]; then
+        echo "Error: URL points to localhost (blocked for security)" >&2
+        return 1
+    fi
+
+    # Reject private IP ranges (RFC 1918)
+    if [[ "$host" =~ ^10\. ]] || \
+       [[ "$host" =~ ^172\.(1[6-9]|2[0-9]|3[01])\. ]] || \
+       [[ "$host" =~ ^192\.168\. ]]; then
+        echo "Error: URL points to private IP range (blocked for security)" >&2
+        return 1
+    fi
+
+    # Reject link-local addresses
+    if [[ "$host" =~ ^169\.254\. ]]; then
+        echo "Error: URL points to link-local address (blocked for security)" >&2
+        return 1
+    fi
+
+    # Reject cloud metadata endpoints
+    if [[ "$host" == "metadata.google.internal" ]] || \
+       [[ "$host" == "metadata.google.com" ]] || \
+       [[ "$host" =~ ^169\.254\.169\.254$ ]]; then
+        echo "Error: URL points to cloud metadata endpoint (blocked for security)" >&2
+        return 1
+    fi
+
+    return 0
+}
+
 # Parse arguments with validation
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -149,7 +189,10 @@ if [ -n "$IMAGE_PATH" ]; then
         # Local file - upload directly
         CURL_ARGS+=(-F "input_reference=@${IMAGE_PATH}")
     elif [[ "$IMAGE_PATH" =~ ^https?:// ]]; then
-        # URL - download to temp file first
+        # URL - validate and download to temp file
+        if ! validate_url "$IMAGE_PATH"; then
+            exit 1
+        fi
         TEMP_IMAGE=$(mktemp -t sora_input.XXXXXX)
         echo "Downloading reference image..." >&2
         if ! curl -fsSL --connect-timeout 10 --max-time 60 -o "$TEMP_IMAGE" "$IMAGE_PATH"; then

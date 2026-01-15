@@ -4,10 +4,12 @@
 Tracks active workers across worktrees using a JSON file stored in .git/
 """
 
+import fcntl
 import json
 import os
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
@@ -111,14 +113,38 @@ def load_coordination() -> dict:
 
 
 def save_coordination(data: dict) -> None:
-    """Save coordination data to file.
+    """Save coordination data to file atomically with locking.
+
+    Uses a temp file + rename to prevent corruption from concurrent writes.
+    Uses file locking to prevent race conditions between workers.
 
     Args:
         data: Coordination data dictionary.
     """
     coord_file = get_coordination_file()
-    with open(coord_file, "w") as f:
-        json.dump(data, f, indent=2)
+    coord_dir = os.path.dirname(coord_file)
+    lock_file = coord_file + ".lock"
+
+    # Ensure directory exists
+    os.makedirs(coord_dir, exist_ok=True)
+
+    # Use a lock file to prevent concurrent writes
+    with open(lock_file, "w") as lock_f:
+        fcntl.flock(lock_f.fileno(), fcntl.LOCK_EX)
+        try:
+            # Write to temp file first, then atomically rename
+            fd, temp_path = tempfile.mkstemp(dir=coord_dir, suffix=".tmp")
+            try:
+                with os.fdopen(fd, "w") as f:
+                    json.dump(data, f, indent=2)
+                os.rename(temp_path, coord_file)
+            except Exception:
+                # Clean up temp file on error
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
+                raise
+        finally:
+            fcntl.flock(lock_f.fileno(), fcntl.LOCK_UN)
 
 
 def get_next_worker_id(data: dict) -> int:

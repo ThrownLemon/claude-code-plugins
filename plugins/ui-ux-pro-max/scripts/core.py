@@ -13,6 +13,9 @@ from collections import defaultdict
 DATA_DIR = Path(__file__).parent.parent / "data"
 MAX_RESULTS = 3
 
+# Cache for loaded CSVs and BM25 indices to avoid rebuilding on every search
+_csv_cache = {}  # {filepath: {'mtime': float, 'data': list, 'bm25': BM25, 'documents': list}}
+
 CSV_CONFIG = {
     "style": {
         "file": "styles.csv",
@@ -156,18 +159,33 @@ def _load_csv(filepath):
 
 
 def _search_csv(filepath, search_cols, output_cols, query, max_results):
-    """Core search function using BM25"""
+    """Core search function using BM25 with caching."""
     if not filepath.exists():
         return []
 
-    data = _load_csv(filepath)
+    # Check cache - invalidate if file was modified
+    cache_key = str(filepath)
+    current_mtime = filepath.stat().st_mtime
 
-    # Build documents from search columns
-    documents = [" ".join(str(row.get(col, "")) for col in search_cols) for row in data]
+    if cache_key in _csv_cache and _csv_cache[cache_key]['mtime'] == current_mtime:
+        # Use cached data and BM25 index
+        cached = _csv_cache[cache_key]
+        data = cached['data']
+        bm25 = cached['bm25']
+    else:
+        # Load fresh and cache
+        data = _load_csv(filepath)
+        documents = [" ".join(str(row.get(col, "")) for col in search_cols) for row in data]
+        bm25 = BM25()
+        bm25.fit(documents)
+        _csv_cache[cache_key] = {
+            'mtime': current_mtime,
+            'data': data,
+            'bm25': bm25,
+            'documents': documents
+        }
 
-    # BM25 search
-    bm25 = BM25()
-    bm25.fit(documents)
+    # BM25 search using cached index
     ranked = bm25.score(query)
 
     # Get top results with score > 0

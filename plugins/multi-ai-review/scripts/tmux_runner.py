@@ -19,6 +19,20 @@ from typing import Optional
 from cli_configs import CLI_CONFIGS, get_model
 
 
+def escape_applescript_string(s: str) -> str:
+    """Properly escape a string for use in AppleScript double-quoted strings.
+
+    This prevents AppleScript injection by escaping all special characters.
+    """
+    # Order matters: escape backslash first
+    s = s.replace("\\", "\\\\")
+    s = s.replace('"', '\\"')
+    s = s.replace("\r", "\\r")
+    s = s.replace("\n", "\\n")
+    s = s.replace("\t", "\\t")
+    return s
+
+
 def get_output_dir() -> Path:
     """Get or create the output directory."""
     default = Path.home() / ".multi-ai-review"
@@ -198,7 +212,7 @@ def open_terminal_with_tmux(session_name: str) -> bool:
     if warp_exists:
         # Use Warp - open new tab and type command
         # Match fork_terminal.py timing for reliable keystroke entry
-        escaped_cmd = attach_cmd.replace("\\", "\\\\").replace('"', '\\"')
+        escaped_cmd = escape_applescript_string(attach_cmd)
         applescript = f'''
             tell application "Warp" to activate
             delay 0.5
@@ -223,7 +237,7 @@ def open_terminal_with_tmux(session_name: str) -> bool:
             pass
 
     # Fallback to Terminal.app
-    escaped_cmd = attach_cmd.replace("\\", "\\\\").replace('"', '\\"')
+    escaped_cmd = escape_applescript_string(attach_cmd)
     try:
         result = subprocess.run(
             ["osascript", "-e", f'tell application "Terminal" to do script "{escaped_cmd}"'],

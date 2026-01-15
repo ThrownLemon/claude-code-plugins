@@ -340,15 +340,18 @@ def build_cli_command(
     if prompt is None:
         prompt = "Read TASK.md in your current directory and begin working on the assigned task."
 
-    # Escape the prompt for shell
+    # Escape the prompt for shell (single quote escape for single-quoted strings)
     safe_prompt = prompt.replace("'", "'\\''")
 
-    # Get mode flag
+    # Escape the model name to prevent shell injection
+    safe_model = shlex.quote(model).strip("'")  # Remove quotes since template adds them
+
+    # Get mode flag (these are trusted values from config)
     mode_flag = config["autonomous_flag"] if mode == "autonomous" else config["interactive_flag"]
 
     # Build command from template
     cmd = config["command_template"].format(
-        model=model,
+        model=safe_model,
         mode_flag=mode_flag,
         prompt=safe_prompt
     )

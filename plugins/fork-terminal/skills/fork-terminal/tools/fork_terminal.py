@@ -12,6 +12,20 @@ import subprocess
 import sys
 
 
+def escape_applescript_string(s: str) -> str:
+    """Properly escape a string for use in AppleScript double-quoted strings.
+
+    This prevents AppleScript injection by escaping all special characters.
+    """
+    # Order matters: escape backslash first
+    s = s.replace("\\", "\\\\")
+    s = s.replace('"', '\\"')
+    s = s.replace("\r", "\\r")
+    s = s.replace("\n", "\\n")
+    s = s.replace("\t", "\\t")
+    return s
+
+
 def fork_terminal(command: str, terminal: str = None) -> str:
     """Open a new terminal window and run the specified command.
 
@@ -47,8 +61,7 @@ def fork_terminal(command: str, terminal: str = None) -> str:
             try:
                 # Warp doesn't support command execution via URL scheme
                 # Use AppleScript to open new tab and type command
-                # Escape for AppleScript string
-                escaped_cmd = shell_command.replace("\\", "\\\\").replace('"', '\\"')
+                escaped_cmd = escape_applescript_string(shell_command)
                 applescript = f'''
                     tell application "Warp" to activate
                     delay 0.5
@@ -75,7 +88,7 @@ def fork_terminal(command: str, terminal: str = None) -> str:
                 return f"Error: {str(e)}"
         else:
             # Default: Terminal.app
-            escaped_shell_command = shell_command.replace("\\", "\\\\").replace('"', '\\"')
+            escaped_shell_command = escape_applescript_string(shell_command)
             try:
                 result = subprocess.run(
                     ["osascript", "-e", f'tell application "Terminal" to do script "{escaped_shell_command}"'],
