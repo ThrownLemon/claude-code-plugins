@@ -109,11 +109,12 @@ play_tts() {
     case "$player" in
         afplay)
             # macOS afplay doesn't support stdin, use temp file
+            # Use TMPDIR (secure per-user temp) instead of hardcoded /tmp
             local temp_file
-            temp_file=$(mktemp /tmp/tts-audio.XXXXXX.mp3)
+            temp_file=$(mktemp "${TMPDIR:-/tmp}/tts-audio.XXXXXX.mp3")
             cat > "$temp_file"
             afplay "$temp_file" >/dev/null 2>&1
-            rm "$temp_file" 2>/dev/null
+            rm -f "$temp_file" 2>/dev/null
             ;;
         paplay)  paplay >/dev/null 2>&1 ;;
         aplay)   aplay -q >/dev/null 2>&1 ;;

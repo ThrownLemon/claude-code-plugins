@@ -8,6 +8,7 @@ Runs multiple AI CLIs in tmux split panes so you can watch them all simultaneous
 import argparse
 import json
 import os
+import platform
 import subprocess
 import sys
 import time
@@ -203,7 +204,14 @@ def open_terminal_with_tmux(session_name: str) -> bool:
     """Open a new terminal tab and attach to the tmux session.
 
     Returns True if successful, False otherwise.
+    Note: This function currently only supports macOS.
     """
+    # Check platform - osascript is macOS only
+    if platform.system() != "Darwin":
+        print(f"Auto-attach not supported on {platform.system()}.", file=sys.stderr)
+        print(f"Run manually: tmux attach -t {session_name}", file=sys.stderr)
+        return False
+
     # Check if Warp is available (preferred)
     warp_exists = os.path.exists("/Applications/Warp.app")
 

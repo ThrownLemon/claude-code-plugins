@@ -35,6 +35,36 @@ from utils import (
 )
 
 
+def is_safe_output_path(output_path: Path, base_dir: Path = None) -> bool:
+    """Validate output path to prevent directory traversal attacks.
+
+    Args:
+        output_path: The path to validate.
+        base_dir: If provided, ensure output is within this directory.
+
+    Returns:
+        True if safe, False otherwise.
+    """
+    try:
+        resolved = output_path.resolve()
+
+        # Don't allow writing to system directories
+        dangerous_prefixes = ['/etc', '/usr', '/bin', '/sbin', '/var', '/root']
+        for prefix in dangerous_prefixes:
+            if str(resolved).startswith(prefix):
+                return False
+
+        # If base_dir specified, ensure output is within it
+        if base_dir:
+            base_resolved = base_dir.resolve()
+            if not str(resolved).startswith(str(base_resolved)):
+                return False
+
+        return True
+    except Exception:
+        return False
+
+
 def is_safe_url(url: str) -> bool:
     """Validate URL to prevent SSRF attacks.
 
@@ -281,6 +311,14 @@ def main():
     # Determine output path
     if args.output:
         output_path = Path(args.output)
+        # Validate output path to prevent directory traversal
+        if not is_safe_output_path(output_path):
+            error_msg = f"Unsafe output path: {args.output}"
+            if args.json:
+                print(json.dumps({"success": False, "error": error_msg}))
+            else:
+                print_result(False, error_msg)
+            sys.exit(1)
         output_path.parent.mkdir(parents=True, exist_ok=True)
     else:
         output_dir = get_output_dir()

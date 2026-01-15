@@ -21,8 +21,8 @@ def generate_filename(prompt: str, prefix: str = "img", extension: str = "png",
         parts.append(datetime.now().strftime("%Y%m%d_%H%M%S"))
 
     if include_hash:
-        # Create a short hash from the prompt
-        prompt_hash = hashlib.md5(prompt.encode()).hexdigest()[:8]
+        # Create a short hash from the prompt (SHA256 for better practice)
+        prompt_hash = hashlib.sha256(prompt.encode()).hexdigest()[:8]
         parts.append(prompt_hash)
 
     return "_".join(parts) + f".{extension}"
