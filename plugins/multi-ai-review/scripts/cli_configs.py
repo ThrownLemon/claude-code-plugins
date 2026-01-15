@@ -8,6 +8,7 @@ CLI_CONFIGS = {
     "claude": {
         "command": "claude",
         "default_model": "opus",
+        "fast_model": "sonnet",
         "env_model": "MULTI_REVIEW_CLAUDE_MODEL",
         "prompt_flag": "-p",
         "model_flag": "--model",
@@ -17,17 +18,19 @@ CLI_CONFIGS = {
     },
     "gemini": {
         "command": "gemini",
-        "default_model": "gemini-2.5-pro",
+        "default_model": "gemini-3-pro-preview",
+        "fast_model": "gemini-3-flash-preview",
         "env_model": "MULTI_REVIEW_GEMINI_MODEL",
         "prompt_flag": None,  # Gemini takes prompt as positional after --
         "model_flag": "--model",
         "auto_flags": ["-y"],
-        "install_cmd": "npm install -g @anthropic-ai/gemini-cli",
+        "install_cmd": "npm install -g @google/gemini-cli",
         "check_cmd": "which gemini"
     },
     "codex": {
         "command": "codex",
-        "default_model": "gpt-4o",
+        "default_model": "gpt-5.2-codex",
+        "fast_model": "gpt-5.1-codex-mini",
         "env_model": "MULTI_REVIEW_CODEX_MODEL",
         "prompt_flag": None,  # Codex takes prompt as positional
         "model_flag": "--model",

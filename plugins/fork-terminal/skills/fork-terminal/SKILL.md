@@ -30,6 +30,12 @@ triggers:
   - "race to solve"
   - "have claude gemini codex compete"
   - "spawn tournament"
+  - "visual tournament"
+  - "visual mode tournament"
+  - "watch all clis"
+  - "split pane tournament"
+  - "tmux visual"
+  - "show all clis running"
 ---
 
 # Fork Terminal Skill
@@ -289,3 +295,78 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/tournament_review.py co
 - "Have claude, gemini, and codex compete on adding caching"
 - "Race to solve the performance issue"
 - "Tournament with claude and gemini to refactor the API"
+
+---
+
+## Visual Tournament Mode
+
+Visual tournament mode runs multiple AI CLIs **side-by-side in tmux split panes** so you can watch them all simultaneously. Unlike regular tournament mode (which uses separate worktrees), visual mode runs all CLIs in the current project.
+
+### When to Use Visual Mode
+
+Use visual mode when:
+- You want to **watch all CLIs working in real-time**
+- You're doing a **quick comparison** or code review
+- You don't need **git isolation** between workers
+- You want a **single tmux session** with all CLIs visible
+
+### Visual Mode Trigger Patterns
+
+- "visual tournament to review X" → All CLIs in split panes
+- "watch all clis review the code" → All CLIs visible
+- "tmux visual mode with claude and gemini" → Specific CLIs
+- "split pane tournament" → All CLIs in split panes
+
+### How to Execute Visual Mode
+
+1. **Identify visual mode** from trigger patterns above
+2. **Parse CLIs to use**: Default is all three, or parse from request
+3. **Execute visual tournament**:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/visual_tournament.py \
+  --task "<task or prompt>" \
+  [--clis claude,gemini,codex]
+```
+
+### Visual Mode Workflow
+
+1. **Spawn**: Creates tmux session with split panes
+2. **Watch**: All CLIs run simultaneously, visible in panes
+3. **Output**: Each CLI's output saved to `~/.fork-terminal/visual/<id>/<cli>.txt`
+4. **Detach**: Use `Ctrl+B then D` to detach (CLIs continue running)
+5. **Reattach**: Use `tmux attach -t <session>` to view again
+
+### Tmux Controls
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+B D` | Detach (CLIs continue in background) |
+| `Ctrl+B [` | Scroll mode (q to exit) |
+| `Ctrl+B z` | Zoom current pane (toggle) |
+| `Ctrl+B o` | Switch between panes |
+
+### Visual Mode Example
+
+```bash
+# Run all CLIs to review code
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/visual_tournament.py \
+  --task "Review this codebase for security issues"
+
+# Run specific CLIs
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/visual_tournament.py \
+  --task "Analyze the authentication flow" \
+  --clis claude,gemini
+
+# Don't auto-attach (run in background)
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/visual_tournament.py \
+  --task "Review the API endpoints" \
+  --no-attach
+```
+
+### Visual Mode Example Triggers
+
+- "Visual tournament to review the authentication code"
+- "Watch all CLIs analyze this codebase"
+- "Split pane tournament with claude and codex"
+- "Show all CLIs running on security review"

@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-"""
-Tmux-based parallel AI review runner.
+"""Visual tmux mode for fork-terminal tournaments.
 
 Runs multiple AI CLIs in tmux split panes so you can watch them all simultaneously.
+Similar to multi-ai-review's tmux_runner.py but integrated with fork-terminal.
 """
 
-import argparse
-import json
 import os
 import subprocess
 import sys
@@ -14,28 +12,19 @@ import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
-from cli_configs import CLI_CONFIGS, get_model
+# Import sibling modules
+sys.path.insert(0, str(Path(__file__).parent))
 
-
-def get_output_dir() -> Path:
-    """Get or create the output directory."""
-    default = Path.home() / ".multi-ai-review"
-    env_dir = os.environ.get("MULTI_REVIEW_OUTPUT_DIR", "")
-    if env_dir:
-        output_dir = Path(os.path.expanduser(os.path.expandvars(env_dir)))
-    else:
-        output_dir = default
-    output_dir.mkdir(parents=True, exist_ok=True)
-    return output_dir
-
-
-def generate_review_id() -> str:
-    """Generate a unique review ID."""
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    unique_id = str(uuid.uuid4())[:8]
-    return f"review-{timestamp}-{unique_id}"
+from spawn_session import CLI_CONFIGS
+from worktree_manager import (
+    create_worktree,
+    sanitize_branch_name,
+    worktree_exists
+)
+from coordination import register_tournament, register_worker
+from tournament import create_tournament_task_file
 
 
 def check_tmux() -> bool:
@@ -52,48 +41,14 @@ def check_cli_installed(cli: str) -> bool:
     config = CLI_CONFIGS.get(cli)
     if not config:
         return False
-    cmd_parts = config["check_cmd"].split()
+    cmd_name = config.get("command_template", "").split()[0]
+    if not cmd_name:
+        return False
     try:
-        result = subprocess.run(cmd_parts, capture_output=True, timeout=10)
+        result = subprocess.run(["which", cmd_name], capture_output=True, timeout=10)
         return result.returncode == 0
     except Exception:
         return False
-
-
-def build_cli_command(cli: str, prompt: str, output_file: Path) -> str:
-    """Build the shell command to run a CLI and save output.
-
-    Uses 'script' command to provide a PTY while capturing output,
-    so CLIs that require a terminal (like Codex) work properly.
-    """
-    config = CLI_CONFIGS.get(cli)
-    if not config:
-        raise ValueError(f"Unknown CLI: {cli}")
-
-    model = get_model(cli)
-
-    # Build the base CLI command
-    # Models match fork-terminal defaults: claude=opus, gemini=gemini-3-pro-preview, codex=gpt-5.2-codex
-    if cli == "claude":
-        # Claude: use -p for prompt, --dangerously-skip-permissions for non-interactive
-        cli_cmd = f'claude --model {model} --dangerously-skip-permissions -p {_shell_quote(prompt)}'
-    elif cli == "gemini":
-        # Gemini: prompt as positional arg after flags, -y for auto-accept
-        cli_cmd = f'gemini --model {model} -y {_shell_quote(prompt)}'
-    elif cli == "codex":
-        # Codex: --dangerously-bypass-approvals-and-sandbox for full autonomous mode
-        cli_cmd = f'codex --model {model} --dangerously-bypass-approvals-and-sandbox {_shell_quote(prompt)}'
-    else:
-        raise ValueError(f"Unknown CLI: {cli}")
-
-    # Wrap with 'script' to provide PTY and capture output
-    # -q = quiet (no "Script started" message)
-    # Use sh -c to ensure the command is parsed correctly
-    # The command runs in a pseudo-terminal so CLIs see a TTY
-    escaped_cli_cmd = cli_cmd.replace("'", "'\\''")
-    cmd = f"script -q {output_file} sh -c '{escaped_cli_cmd}'"
-
-    return cmd
 
 
 def _shell_quote(s: str) -> str:
@@ -103,14 +58,59 @@ def _shell_quote(s: str) -> str:
     return f"$'{escaped}'"
 
 
-def create_tmux_session(
+def build_visual_cli_command(cli: str, prompt: str, output_file: Path, model: str = None) -> str:
+    """Build the shell command to run a CLI with PTY and output capture.
+
+    Uses 'script' command to provide a PTY while capturing output,
+    so CLIs that require a terminal work properly.
+    """
+    config = CLI_CONFIGS.get(cli)
+    if not config:
+        raise ValueError(f"Unknown CLI: {cli}")
+
+    if model is None:
+        model = config["default_model"]
+
+    # Build the base CLI command based on CLI type
+    if cli == "claude":
+        cli_cmd = f'claude --model {model} --dangerously-skip-permissions -p {_shell_quote(prompt)}'
+    elif cli == "gemini":
+        cli_cmd = f'gemini --model {model} -y {_shell_quote(prompt)}'
+    elif cli == "codex":
+        cli_cmd = f'codex --model {model} --dangerously-bypass-approvals-and-sandbox {_shell_quote(prompt)}'
+    else:
+        raise ValueError(f"Unknown CLI: {cli}")
+
+    # Wrap with 'script' to provide PTY and capture output
+    escaped_cli_cmd = cli_cmd.replace("'", "'\\''")
+    cmd = f"script -q {output_file} sh -c '{escaped_cli_cmd}'"
+
+    return cmd
+
+
+def create_visual_tmux_session(
     session_name: str,
-    clis: list[str],
+    clis: List[str],
     prompt: str,
     output_dir: Path,
-    project_root: str
+    project_root: str,
+    model_config: dict = None
 ) -> dict:
-    """Create a tmux session with split panes for each CLI."""
+    """Create a tmux session with split panes for each CLI.
+
+    Args:
+        session_name: Name for the tmux session.
+        clis: List of CLI types to run.
+        prompt: The prompt to send to each CLI.
+        output_dir: Directory to store output files.
+        project_root: Working directory for the CLIs.
+        model_config: Optional dict mapping CLI to model.
+
+    Returns:
+        Dict with pane info for each CLI.
+    """
+    if model_config is None:
+        model_config = {}
 
     # Kill existing session if it exists
     subprocess.run(["tmux", "kill-session", "-t", session_name],
@@ -143,7 +143,6 @@ def create_tmux_session(
                 "tmux", "split-window", "-v", "-t", f"{session_name}:0.0",
                 "-c", project_root
             ], check=True)
-            # After split, pane IDs shift
             pane_ids[cli] = f"{session_name}:0.2"
 
     # Use tiled layout for even distribution
@@ -158,7 +157,8 @@ def create_tmux_session(
     results = {}
     for cli, pane_id in pane_ids.items():
         output_file = output_dir / f"{cli}.txt"
-        cmd = build_cli_command(cli, prompt, output_file)
+        model = model_config.get(cli)
+        cmd = build_visual_cli_command(cli, prompt, output_file, model)
 
         # Set pane title
         subprocess.run([
@@ -175,7 +175,7 @@ def create_tmux_session(
         # Small delay to let clear complete
         time.sleep(0.1)
 
-        # Send the CLI command directly (no echo wrapper)
+        # Send the CLI command
         subprocess.run([
             "tmux", "send-keys", "-t", pane_id,
             cmd, "Enter"
@@ -190,75 +190,36 @@ def create_tmux_session(
     return results
 
 
-def attach_to_session(session_name: str):
-    """Attach to the tmux session."""
-    # Check if we're already in tmux
-    if os.environ.get("TMUX"):
-        # Switch to the session
-        subprocess.run(["tmux", "switch-client", "-t", session_name])
-    else:
-        # Attach to session
-        subprocess.run(["tmux", "attach-session", "-t", session_name])
-
-
-def wait_for_completion(
-    session_name: str,
-    clis: list[str],
-    output_dir: Path,
-    timeout_minutes: int = 10
-) -> dict:
-    """Wait for all CLIs to complete and collect results."""
-    start_time = time.time()
-    timeout_seconds = timeout_minutes * 60
-
-    results = {cli: {"status": "running"} for cli in clis}
-
-    while time.time() - start_time < timeout_seconds:
-        all_done = True
-
-        for cli in clis:
-            if results[cli]["status"] in ("complete", "failed", "timeout"):
-                continue
-
-            # Check if pane still has a running process
-            pane_check = subprocess.run(
-                ["tmux", "list-panes", "-t", session_name, "-F", "#{pane_pid}"],
-                capture_output=True, text=True
-            )
-
-            # Check if output file exists and has content
-            output_file = output_dir / f"{cli}.txt"
-            if output_file.exists():
-                content = output_file.read_text()
-                # Look for completion markers
-                if "session_id" in content or "error" in content.lower() or len(content) > 1000:
-                    results[cli]["status"] = "complete"
-                    results[cli]["output_file"] = str(output_file)
-                    continue
-
-            all_done = False
-
-        if all_done:
-            break
-
-        time.sleep(5)
-
-    # Mark any still-running as timeout
-    for cli in clis:
-        if results[cli]["status"] == "running":
-            results[cli]["status"] = "timeout"
-
-    return results
-
-
-def run_tmux_review(
-    clis: list[str],
-    prompt: str,
-    project_root: str,
-    timeout: int = 10,
+def spawn_visual_tournament(
+    task: str,
+    clis: List[str] = None,
+    base: str = "HEAD",
+    model_config: dict = None,
+    output_dir: Path = None,
     attach: bool = True
 ) -> dict:
-    """Run parallel reviews in tmux panes."""
+    """Spawn a visual tournament with split panes for each CLI.
+
+    Unlike regular tournament mode which creates separate worktrees,
+    visual mode runs all CLIs in the same project with split panes
+    for live viewing.
+
+    Args:
+        task: Task description / prompt for the CLIs.
+        clis: List of CLI types (default: ["claude", "gemini", "codex"]).
+        base: Base branch (for worktree mode, currently unused).
+        model_config: Optional dict mapping CLI to model.
+        output_dir: Directory for output files (auto-generated if None).
+        attach: Whether to attach to the tmux session after creation.
+
+    Returns:
+        Dict with tournament results.
+    """
+    if clis is None:
+        clis = ["claude", "gemini", "codex"]
+
+    if model_config is None:
+        model_config = {}
 
     # Check tmux is available
     if not check_tmux():
@@ -278,46 +239,35 @@ def run_tmux_review(
         }
 
     # Create output directory
-    review_id = generate_review_id()
-    output_dir = get_output_dir() / review_id
+    if output_dir is None:
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        unique_id = str(uuid.uuid4())[:8]
+        output_dir = Path.home() / ".fork-terminal" / "visual" / f"visual-{timestamp}-{unique_id}"
+
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Save metadata
-    metadata = {
-        "review_id": review_id,
-        "project_root": project_root,
-        "prompt_length": len(prompt),
-        "requested_clis": clis,
-        "available_clis": available_clis,
-        "missing_clis": missing_clis,
-        "timeout_minutes": timeout,
-        "mode": "tmux",
-        "started": datetime.now(timezone.utc).isoformat()
-    }
+    # Get project root
+    project_root = os.getcwd()
 
-    with open(output_dir / "metadata.json", "w") as f:
-        json.dump(metadata, f, indent=2)
+    # Generate session name
+    session_name = f"visual-{datetime.now().strftime('%H%M%S')}"
 
-    # Create tmux session
-    session_name = f"multi-review-{review_id[-8:]}"
-
-    print(f"Creating tmux session: {session_name}")
-    print(f"Review ID: {review_id}")
+    print(f"Creating visual tmux session: {session_name}")
     print(f"CLIs: {', '.join(available_clis)}")
     print(f"Output: {output_dir}")
     print()
 
-    pane_results = create_tmux_session(
+    pane_results = create_visual_tmux_session(
         session_name=session_name,
         clis=available_clis,
-        prompt=prompt,
+        prompt=task,
         output_dir=output_dir,
-        project_root=project_root
+        project_root=project_root,
+        model_config=model_config
     )
 
     result = {
         "success": True,
-        "review_id": review_id,
         "session_name": session_name,
         "output_dir": str(output_dir),
         "available_clis": available_clis,
@@ -329,11 +279,11 @@ def run_tmux_review(
     print("=" * 60)
     print(f"Tmux session '{session_name}' created with {len(available_clis)} panes")
     print()
-    print("To view the reviews:")
+    print("To view the session:")
     print(f"  tmux attach -t {session_name}")
     print()
     print("Tmux controls:")
-    print("  Ctrl+B then D  - Detach (reviews continue in background)")
+    print("  Ctrl+B then D  - Detach (CLIs continue in background)")
     print("  Ctrl+B then [  - Scroll mode (q to exit)")
     print("  Ctrl+B then z  - Zoom current pane (toggle)")
     print("  Ctrl+B then o  - Switch between panes")
@@ -346,13 +296,26 @@ def run_tmux_review(
     return result
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Tmux-based multi-AI review runner")
-    parser.add_argument("--clis", default="claude,gemini,codex",
+def attach_to_session(session_name: str):
+    """Attach to the tmux session."""
+    # Check if we're already in tmux
+    if os.environ.get("TMUX"):
+        # Switch to the session
+        subprocess.run(["tmux", "switch-client", "-t", session_name])
+    else:
+        # Attach to session
+        subprocess.run(["tmux", "attach-session", "-t", session_name])
+
+
+# CLI interface
+if __name__ == "__main__":
+    import argparse
+    import json
+
+    parser = argparse.ArgumentParser(description="Visual tmux mode for fork-terminal")
+    parser.add_argument("--task", "-t", required=True, help="Task/prompt for the CLIs")
+    parser.add_argument("--clis", "-c", default="claude,gemini,codex",
                         help="Comma-separated CLIs to use")
-    parser.add_argument("--prompt", required=True, help="Review prompt")
-    parser.add_argument("--project-root", default=".", help="Project directory")
-    parser.add_argument("--timeout", type=int, default=10, help="Timeout in minutes")
     parser.add_argument("--no-attach", action="store_true",
                         help="Don't attach to tmux session")
     parser.add_argument("--json", action="store_true", help="Output JSON")
@@ -361,11 +324,9 @@ def main():
 
     clis = [c.strip() for c in args.clis.split(",")]
 
-    result = run_tmux_review(
+    result = spawn_visual_tournament(
+        task=args.task,
         clis=clis,
-        prompt=args.prompt,
-        project_root=os.path.abspath(args.project_root),
-        timeout=args.timeout,
         attach=not args.no_attach
     )
 
@@ -374,7 +335,3 @@ def main():
     elif not result.get("success"):
         print(f"Error: {result.get('error')}", file=sys.stderr)
         sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()

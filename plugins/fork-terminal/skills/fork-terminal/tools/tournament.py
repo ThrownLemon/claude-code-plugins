@@ -131,7 +131,11 @@ def spawn_tournament(
         clis: List of CLI types to use (default: ["claude", "gemini", "codex"]).
         base: Base commit/branch to start from.
         model_config: Optional dict mapping CLI to model (e.g., {"claude": "haiku"}).
-        terminal: Terminal type: "tmux", "window", or "auto".
+        terminal: Terminal type: "tmux", "window", "visual", or "auto".
+            - "visual": Split panes in single tmux session (watch all CLIs at once)
+            - "tmux": Separate tmux windows per CLI
+            - "window": Separate terminal windows per CLI
+            - "auto": Detect best option
 
     Returns:
         Dictionary with results:
@@ -147,6 +151,17 @@ def spawn_tournament(
 
     if model_config is None:
         model_config = {}
+
+    # Handle visual mode - delegate to visual_tournament.py
+    if terminal == "visual":
+        from visual_tournament import spawn_visual_tournament
+        return spawn_visual_tournament(
+            task=task,
+            clis=clis,
+            base=base,
+            model_config=model_config,
+            attach=True
+        )
 
     results = {
         "success": True,
@@ -376,7 +391,7 @@ if __name__ == "__main__":
     spawn_parser.add_argument("--task", "-t", required=True, help="Task description")
     spawn_parser.add_argument("--clis", "-c", help="Comma-separated CLIs (default: claude,gemini,codex)")
     spawn_parser.add_argument("--base", "-b", default="HEAD", help="Base branch/commit")
-    spawn_parser.add_argument("--terminal", choices=["auto", "tmux", "window"], default="auto")
+    spawn_parser.add_argument("--terminal", choices=["auto", "tmux", "window", "visual"], default="auto")
     spawn_parser.add_argument("--json", action="store_true", help="Output as JSON")
 
     # Status command
