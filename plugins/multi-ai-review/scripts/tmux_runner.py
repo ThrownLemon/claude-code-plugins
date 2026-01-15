@@ -88,9 +88,10 @@ def build_cli_command(cli: str, prompt: str, output_file: Path) -> str:
     elif cli == "codex":
         # Codex: requires PTY for interactive UI
         # Use script command to provide pseudo-terminal
-        cli_cmd = f'codex --model {model} --dangerously-bypass-approvals-and-sandbox {_shell_quote(prompt)}'
-        escaped_cli_cmd = cli_cmd.replace("'", "'\\''")
-        cmd = f"script -q {output_file} sh -c '{escaped_cli_cmd}'"
+        # On macOS, script syntax is: script [-q] file command [args...]
+        # Quote the prompt directly, no need for sh -c wrapper
+        quoted_prompt = _shell_quote(prompt)
+        cmd = f"script -q {output_file} codex --model {model} --dangerously-bypass-approvals-and-sandbox {quoted_prompt}"
     else:
         raise ValueError(f"Unknown CLI: {cli}")
 
@@ -98,10 +99,10 @@ def build_cli_command(cli: str, prompt: str, output_file: Path) -> str:
 
 
 def _shell_quote(s: str) -> str:
-    """Quote a string for shell use."""
-    # Use $'...' syntax for strings with special characters
-    escaped = s.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n")
-    return f"$'{escaped}'"
+    """Quote a string for shell use with double quotes."""
+    # Use double quotes - escape backslash, double quote, dollar, backtick
+    escaped = s.replace("\\", "\\\\").replace('"', '\\"').replace("$", "\\$").replace("`", "\\`")
+    return f'"{escaped}"'
 
 
 def create_tmux_session(
@@ -189,6 +190,55 @@ def create_tmux_session(
         }
 
     return results
+
+
+def open_terminal_with_tmux(session_name: str) -> bool:
+    """Open a new terminal tab and attach to the tmux session.
+
+    Returns True if successful, False otherwise.
+    """
+    # Check if Warp is available (preferred)
+    warp_exists = os.path.exists("/Applications/Warp.app")
+
+    attach_cmd = f"tmux attach -t {session_name}"
+
+    if warp_exists:
+        # Use Warp - open new tab and type command
+        escaped_cmd = attach_cmd.replace("\\", "\\\\").replace('"', '\\"')
+        applescript = f'''
+            tell application "Warp" to activate
+            delay 0.5
+            tell application "System Events"
+                tell process "Warp"
+                    keystroke "t" using command down
+                    delay 0.5
+                    keystroke "{escaped_cmd}"
+                    delay 0.3
+                    keystroke return
+                end tell
+            end tell
+        '''
+        try:
+            result = subprocess.run(
+                ["osascript", "-e", applescript],
+                capture_output=True,
+                text=True,
+            )
+            return result.returncode == 0
+        except Exception:
+            pass
+
+    # Fallback to Terminal.app
+    escaped_cmd = attach_cmd.replace("\\", "\\\\").replace('"', '\\"')
+    try:
+        result = subprocess.run(
+            ["osascript", "-e", f'tell application "Terminal" to do script "{escaped_cmd}"'],
+            capture_output=True,
+            text=True,
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
 
 
 def attach_to_session(session_name: str):
@@ -341,8 +391,14 @@ def run_tmux_review(
     print("=" * 60)
 
     if attach:
-        print("\nAttaching to session...")
-        attach_to_session(session_name)
+        print("\nOpening new terminal tab with tmux session...")
+        if open_terminal_with_tmux(session_name):
+            print("✓ Terminal opened successfully")
+            result["terminal_opened"] = True
+        else:
+            print("Could not open terminal automatically.")
+            print(f"Run: tmux attach -t {session_name}")
+            result["terminal_opened"] = False
 
     return result
 

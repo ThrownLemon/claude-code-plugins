@@ -12,7 +12,8 @@ CLI_CONFIGS = {
         "env_model": "MULTI_REVIEW_CLAUDE_MODEL",
         "prompt_flag": "-p",
         "model_flag": "--model",
-        "auto_flags": ["--dangerously-skip-permissions", "--output-format", "json"],
+        # --dangerously-skip-permissions enables non-interactive mode with streaming output
+        "auto_flags": ["--dangerously-skip-permissions"],
         "install_cmd": "Already available (Claude Code CLI)",
         "check_cmd": "which claude"
     },
