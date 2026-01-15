@@ -27,7 +27,7 @@ CLI_CONFIGS = {
     },
     "codex": {
         "command": "codex",
-        "default_model": "o3",
+        "default_model": "gpt-4o",
         "env_model": "MULTI_REVIEW_CODEX_MODEL",
         "prompt_flag": None,  # Codex takes prompt as positional
         "model_flag": "--model",
