@@ -15,7 +15,8 @@ json_escape() {
 
 # Normalize boolean values (true/1/yes -> true, false/0/no -> false)
 normalize_bool() {
-    local val="${1,,}"  # Lowercase
+    local val
+    val=$(echo "$1" | tr '[:upper:]' '[:lower:]')  # Bash 3.2 compatible lowercase
     case "$val" in
         true|1|yes|on) echo "true" ;;
         false|0|no|off|"") echo "false" ;;
@@ -106,7 +107,14 @@ play_tts() {
     fi
 
     case "$player" in
-        afplay)  afplay - >/dev/null 2>&1 ;;
+        afplay)
+            # macOS afplay doesn't support stdin, use temp file
+            local temp_file
+            temp_file=$(mktemp /tmp/tts-audio.XXXXXX.mp3)
+            cat > "$temp_file"
+            afplay "$temp_file" >/dev/null 2>&1
+            rm "$temp_file" 2>/dev/null
+            ;;
         paplay)  paplay >/dev/null 2>&1 ;;
         aplay)   aplay -q >/dev/null 2>&1 ;;
         play)    play -t mp3 - >/dev/null 2>&1 ;;
