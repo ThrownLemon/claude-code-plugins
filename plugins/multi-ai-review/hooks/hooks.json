@@ -3,8 +3,13 @@
   "hooks": {
     "SubagentStop": [
       {
-        "type": "command",
-        "command": "echo 'Multi-AI review complete. Use /multi-ai-review:report to view detailed results.'"
+        "matcher": "multi-ai-review:review-coordinator",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Multi-AI review complete. Use /multi-ai-review:report to view detailed results.'"
+          }
+        ]
       }
     ]
   }
