@@ -59,10 +59,11 @@ def _shell_quote(s: str) -> str:
 
 
 def build_visual_cli_command(cli: str, prompt: str, output_file: Path, model: str = None) -> str:
-    """Build the shell command to run a CLI with PTY and output capture.
+    """Build the shell command to run a CLI with output capture.
 
-    Uses 'script' command to provide a PTY while capturing output,
-    so CLIs that require a terminal work properly.
+    Different CLIs need different handling:
+    - Claude/Gemini: Use tee for output capture (don't need PTY)
+    - Codex: Use script for PTY emulation (requires terminal)
     """
     config = CLI_CONFIGS.get(cli)
     if not config:
@@ -73,17 +74,20 @@ def build_visual_cli_command(cli: str, prompt: str, output_file: Path, model: st
 
     # Build the base CLI command based on CLI type
     if cli == "claude":
+        # Claude doesn't need PTY, use tee for live output capture
         cli_cmd = f'claude --model {model} --dangerously-skip-permissions -p {_shell_quote(prompt)}'
+        cmd = f"{cli_cmd} 2>&1 | tee {output_file}"
     elif cli == "gemini":
+        # Gemini doesn't need PTY, use tee for live output capture
         cli_cmd = f'gemini --model {model} -y {_shell_quote(prompt)}'
+        cmd = f"{cli_cmd} 2>&1 | tee {output_file}"
     elif cli == "codex":
+        # Codex requires PTY for interactive UI, use script
         cli_cmd = f'codex --model {model} --dangerously-bypass-approvals-and-sandbox {_shell_quote(prompt)}'
+        escaped_cli_cmd = cli_cmd.replace("'", "'\\''")
+        cmd = f"script -q {output_file} sh -c '{escaped_cli_cmd}'"
     else:
         raise ValueError(f"Unknown CLI: {cli}")
-
-    # Wrap with 'script' to provide PTY and capture output
-    escaped_cli_cmd = cli_cmd.replace("'", "'\\''")
-    cmd = f"script -q {output_file} sh -c '{escaped_cli_cmd}'"
 
     return cmd
 

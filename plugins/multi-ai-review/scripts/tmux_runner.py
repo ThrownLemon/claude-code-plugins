@@ -63,8 +63,9 @@ def check_cli_installed(cli: str) -> bool:
 def build_cli_command(cli: str, prompt: str, output_file: Path) -> str:
     """Build the shell command to run a CLI and save output.
 
-    Uses 'script' command to provide a PTY while capturing output,
-    so CLIs that require a terminal (like Codex) work properly.
+    Different CLIs need different handling:
+    - Claude/Gemini: Use tee for output capture (don't need PTY)
+    - Codex: Use script for PTY emulation (requires terminal)
     """
     config = CLI_CONFIGS.get(cli)
     if not config:
@@ -76,22 +77,22 @@ def build_cli_command(cli: str, prompt: str, output_file: Path) -> str:
     # Models match fork-terminal defaults: claude=opus, gemini=gemini-3-pro-preview, codex=gpt-5.2-codex
     if cli == "claude":
         # Claude: use -p for prompt, --dangerously-skip-permissions for non-interactive
+        # Claude doesn't need PTY, so use tee for live output capture
         cli_cmd = f'claude --model {model} --dangerously-skip-permissions -p {_shell_quote(prompt)}'
+        cmd = f"{cli_cmd} 2>&1 | tee {output_file}"
     elif cli == "gemini":
         # Gemini: prompt as positional arg after flags, -y for auto-accept
+        # Gemini doesn't need PTY, so use tee for live output capture
         cli_cmd = f'gemini --model {model} -y {_shell_quote(prompt)}'
+        cmd = f"{cli_cmd} 2>&1 | tee {output_file}"
     elif cli == "codex":
-        # Codex: --dangerously-bypass-approvals-and-sandbox for full autonomous mode
+        # Codex: requires PTY for interactive UI
+        # Use script command to provide pseudo-terminal
         cli_cmd = f'codex --model {model} --dangerously-bypass-approvals-and-sandbox {_shell_quote(prompt)}'
+        escaped_cli_cmd = cli_cmd.replace("'", "'\\''")
+        cmd = f"script -q {output_file} sh -c '{escaped_cli_cmd}'"
     else:
         raise ValueError(f"Unknown CLI: {cli}")
-
-    # Wrap with 'script' to provide PTY and capture output
-    # -q = quiet (no "Script started" message)
-    # Use sh -c to ensure the command is parsed correctly
-    # The command runs in a pseudo-terminal so CLIs see a TTY
-    escaped_cli_cmd = cli_cmd.replace("'", "'\\''")
-    cmd = f"script -q {output_file} sh -c '{escaped_cli_cmd}'"
 
     return cmd
 
