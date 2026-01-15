@@ -60,12 +60,14 @@ def check_cli_installed(cli: str) -> bool:
         return False
 
 
-def build_cli_command(cli: str, prompt: str, output_file: Path) -> str:
+def build_cli_command(cli: str, prompt_file: Path, output_file: Path) -> str:
     """Build the shell command to run a CLI and save output.
 
     Different CLIs need different handling:
     - Claude/Gemini: Use tee for output capture (don't need PTY)
     - Codex: Use script for PTY emulation (requires terminal)
+
+    The prompt is read from a file to avoid shell escaping issues.
     """
     config = CLI_CONFIGS.get(cli)
     if not config:
@@ -73,36 +75,23 @@ def build_cli_command(cli: str, prompt: str, output_file: Path) -> str:
 
     model = get_model(cli)
 
-    # Build the base CLI command
-    # Models match fork-terminal defaults: claude=opus, gemini=gemini-3-pro-preview, codex=gpt-5.2-codex
+    # Read prompt from file using $(<file) syntax - avoids all escaping issues
+    prompt_ref = f'"$(<{prompt_file})"'
+
     if cli == "claude":
         # Claude: use -p for prompt, --dangerously-skip-permissions for non-interactive
-        # Claude doesn't need PTY, so use tee for live output capture
-        cli_cmd = f'claude --model {model} --dangerously-skip-permissions -p {_shell_quote(prompt)}'
-        cmd = f"{cli_cmd} 2>&1 | tee {output_file}"
+        cmd = f'claude --model {model} --dangerously-skip-permissions -p {prompt_ref} 2>&1 | tee {output_file}'
     elif cli == "gemini":
         # Gemini: prompt as positional arg after flags, -y for auto-accept
-        # Gemini doesn't need PTY, so use tee for live output capture
-        cli_cmd = f'gemini --model {model} -y {_shell_quote(prompt)}'
-        cmd = f"{cli_cmd} 2>&1 | tee {output_file}"
+        cmd = f'gemini --model {model} -y {prompt_ref} 2>&1 | tee {output_file}'
     elif cli == "codex":
         # Codex: requires PTY for interactive UI
         # Use script command to provide pseudo-terminal
-        # On macOS, script syntax is: script [-q] file command [args...]
-        # Quote the prompt directly, no need for sh -c wrapper
-        quoted_prompt = _shell_quote(prompt)
-        cmd = f"script -q {output_file} codex --model {model} --dangerously-bypass-approvals-and-sandbox {quoted_prompt}"
+        cmd = f'script -q {output_file} codex --model {model} --dangerously-bypass-approvals-and-sandbox {prompt_ref}'
     else:
         raise ValueError(f"Unknown CLI: {cli}")
 
     return cmd
-
-
-def _shell_quote(s: str) -> str:
-    """Quote a string for shell use with double quotes."""
-    # Use double quotes - escape backslash, double quote, dollar, backtick
-    escaped = s.replace("\\", "\\\\").replace('"', '\\"').replace("$", "\\$").replace("`", "\\`")
-    return f'"{escaped}"'
 
 
 def create_tmux_session(
@@ -113,6 +102,10 @@ def create_tmux_session(
     project_root: str
 ) -> dict:
     """Create a tmux session with split panes for each CLI."""
+
+    # Write prompt to file to avoid shell escaping issues
+    prompt_file = output_dir / "prompt.txt"
+    prompt_file.write_text(prompt)
 
     # Kill existing session if it exists
     subprocess.run(["tmux", "kill-session", "-t", session_name],
@@ -160,7 +153,7 @@ def create_tmux_session(
     results = {}
     for cli, pane_id in pane_ids.items():
         output_file = output_dir / f"{cli}.txt"
-        cmd = build_cli_command(cli, prompt, output_file)
+        cmd = build_cli_command(cli, prompt_file, output_file)
 
         # Set pane title
         subprocess.run([

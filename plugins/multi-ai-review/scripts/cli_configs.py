@@ -7,8 +7,8 @@ from typing import Optional
 CLI_CONFIGS = {
     "claude": {
         "command": "claude",
-        "default_model": "opus-4-5",
-        "fast_model": "sonnet-4-5",
+        "default_model": "opus",
+        "fast_model": "sonnet",
         "env_model": "MULTI_REVIEW_CLAUDE_MODEL",
         "prompt_flag": "-p",
         "model_flag": "--model",
