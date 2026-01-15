@@ -7,7 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/tool-complete.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/tool-complete.sh",
+            "background": true
           }
         ]
       }
@@ -18,7 +19,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/session-start.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/session-start.sh",
+            "background": true
           }
         ]
       }
@@ -29,7 +31,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/session-end.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/session-end.sh",
+            "background": true
           }
         ]
       }
@@ -40,7 +43,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/prompt-submit.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/prompt-submit.sh",
+            "background": true
           }
         ]
       }
@@ -51,7 +55,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/task-complete.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/task-complete.sh",
+            "background": true
           }
         ]
       }
