@@ -292,6 +292,35 @@ bashToolPatterns:
   - pattern: '\bgh\s+repo\s+delete\b'
     reason: gh repo delete (deletes repository)
 
+  # SHELL WRAPPER BYPASS DETECTION
+  # Catches attempts to bypass patterns via shell wrappers
+  - pattern: '\b(bash|sh|zsh|ksh|dash)\s+(-[^\s]*\s+)*-c\s+[''"].*\b(rm|chmod|chown|dd|mkfs|shred|kill|truncate)\b'
+    reason: Shell wrapper with dangerous command (potential bypass attempt)
+
+  - pattern: '\beval\s+.*\b(rm|chmod|chown|dd|mkfs|shred|kill|truncate)\b'
+    reason: Eval with dangerous command (potential bypass attempt)
+
+  - pattern: '\bxargs\s+.*\brm\s+-[rRf]'
+    reason: xargs with rm -rf (mass deletion)
+
+  - pattern: '\bfind\s+.*-exec\s+rm\s+-[rRf]'
+    reason: find -exec rm -rf (mass deletion)
+
+  - pattern: '\bfind\s+.*-delete\b'
+    reason: find -delete (mass deletion)
+
+  # VARIABLE EXPANSION BYPASS DETECTION
+  # Catches variable assignments followed by dangerous commands
+  - pattern: '(\w+=\S*[;|&]\s*|\$\{\w+\}|\$\w+).*\brm\s+-[rRf]'
+    reason: Variable expansion with rm -rf (potential bypass)
+
+  # SUBSHELL BYPASS DETECTION
+  - pattern: '\$\(.*\brm\s+-[rRf].*\)'
+    reason: Subshell with rm -rf (potential bypass)
+
+  - pattern: '`.*\brm\s+-[rRf].*`'
+    reason: Backtick subshell with rm -rf (potential bypass)
+
   # PACKAGE REGISTRY DESTRUCTIVE OPERATIONS
   - pattern: '\bnpm\s+unpublish\b'
     reason: npm unpublish (removes package from registry)

@@ -5,7 +5,6 @@ Shared utilities for damage-control path matching and config loading.
 Used by edit-tool-damage-control.py and write-tool-damage-control.py.
 """
 
-import fnmatch
 import os
 import sys
 from pathlib import Path
@@ -13,39 +12,61 @@ from typing import Any, Dict, Tuple
 
 import yaml
 
+# Add shared directory to path
+REPO_ROOT = Path(__file__).parent.parent.parent.parent
+sys.path.insert(0, str(REPO_ROOT))
 
-def is_glob_pattern(pattern: str) -> bool:
-    """Check if pattern contains glob wildcards."""
-    return '*' in pattern or '?' in pattern or '[' in pattern
+# Import from shared utilities (with fallback)
+try:
+    from shared.security import match_path_pattern, safe_path, is_glob_pattern
+except ImportError:
+    # Fallback if shared not available
+    import fnmatch
+
+    def is_glob_pattern(pattern: str) -> bool:
+        """Check if pattern contains glob wildcards."""
+        return '*' in pattern or '?' in pattern or '[' in pattern
+
+    def safe_path(path: str) -> str:
+        """Resolve path with symlink resolution."""
+        expanded = os.path.expanduser(path)
+        return os.path.realpath(os.path.normpath(expanded))
+
+    def match_path_pattern(file_path: str, pattern: str) -> bool:
+        """Match file path against pattern with symlink resolution."""
+        expanded_pattern = os.path.expanduser(pattern)
+        normalized = os.path.realpath(os.path.normpath(file_path))
+        expanded_normalized = os.path.expanduser(normalized)
+
+        if is_glob_pattern(pattern):
+            basename = os.path.basename(expanded_normalized)
+            basename_lower = basename.lower()
+            pattern_lower = pattern.lower()
+            expanded_pattern_lower = expanded_pattern.lower()
+
+            if fnmatch.fnmatch(basename_lower, expanded_pattern_lower):
+                return True
+            if fnmatch.fnmatch(basename_lower, pattern_lower):
+                return True
+            if fnmatch.fnmatch(expanded_normalized.lower(), expanded_pattern_lower):
+                return True
+            return False
+        else:
+            expanded_pattern_normalized = expanded_pattern.rstrip('/')
+            if expanded_normalized == expanded_pattern_normalized:
+                return True
+            if expanded_normalized.startswith(expanded_pattern_normalized + '/'):
+                return True
+            return False
 
 
+# Re-export match_path as an alias for backwards compatibility
 def match_path(file_path: str, pattern: str) -> bool:
-    """Match file path against pattern, supporting both prefix and glob matching."""
-    expanded_pattern = os.path.expanduser(pattern)
-    normalized = os.path.normpath(file_path)
-    expanded_normalized = os.path.expanduser(normalized)
+    """Match file path against pattern, supporting both prefix and glob matching.
 
-    if is_glob_pattern(pattern):
-        basename = os.path.basename(expanded_normalized)
-        basename_lower = basename.lower()
-        pattern_lower = pattern.lower()
-        expanded_pattern_lower = expanded_pattern.lower()
-
-        if fnmatch.fnmatch(basename_lower, expanded_pattern_lower):
-            return True
-        if fnmatch.fnmatch(basename_lower, pattern_lower):
-            return True
-        if fnmatch.fnmatch(expanded_normalized.lower(), expanded_pattern_lower):
-            return True
-        return False
-    else:
-        # Fix prefix boundary: ensure we match directory boundaries properly
-        expanded_pattern_normalized = expanded_pattern.rstrip('/')
-        if expanded_normalized == expanded_pattern_normalized:
-            return True
-        if expanded_normalized.startswith(expanded_pattern_normalized + '/'):
-            return True
-        return False
+    Note: Resolves symlinks to prevent bypass attacks.
+    """
+    return match_path_pattern(file_path, pattern)
 
 
 def get_config_path() -> Path:

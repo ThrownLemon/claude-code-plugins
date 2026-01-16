@@ -55,16 +55,21 @@ class TournamentInfo:
 
 
 def get_git_dir() -> str:
-    """Get the .git directory for the current repository.
+    """Get the shared .git directory for the current repository.
+
+    Uses --git-common-dir to get the main .git directory that is shared
+    across all worktrees. This ensures coordination data is shared.
 
     Returns:
-        Path to the .git directory.
+        Path to the shared .git directory.
 
     Raises:
         RuntimeError: If not in a git repository.
     """
+    # Use --git-common-dir to get the shared git directory
+    # This returns the main .git dir even when in a worktree
     result = subprocess.run(
-        ["git", "rev-parse", "--git-dir"],
+        ["git", "rev-parse", "--git-common-dir"],
         capture_output=True,
         text=True
     )

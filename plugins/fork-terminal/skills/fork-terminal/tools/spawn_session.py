@@ -15,6 +15,10 @@ from typing import Optional, Tuple
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
+# Add shared directory to path
+REPO_ROOT = Path(__file__).parent.parent.parent.parent.parent.parent
+sys.path.insert(0, str(REPO_ROOT))
+
 from worktree_manager import (
     create_worktree,
     sanitize_branch_name,
@@ -23,31 +27,45 @@ from worktree_manager import (
 )
 from coordination import register_worker
 
+# Import from shared utilities (with fallback)
+try:
+    from shared.security import escape_for_applescript
+    from shared.cli_configs import CLI_CONFIGS, build_command
+except ImportError:
+    # Fallback if shared not available
+    def escape_for_applescript(text: str) -> str:
+        """Escape text for AppleScript strings."""
+        return (text
+                .replace("\\", "\\\\")
+                .replace('"', '\\"')
+                .replace("\r", "\\r")
+                .replace("\n", "\\n")
+                .replace("\t", "\\t"))
 
-# CLI configurations for tournament mode
-CLI_CONFIGS = {
-    "claude": {
-        "command_template": "claude --model {model} --dangerously-skip-permissions {mode_flag} '{prompt}'",
-        "default_model": "opus-4-5",
-        "fast_model": "sonnet-4-5",
-        "interactive_flag": "",  # No -p flag for interactive
-        "autonomous_flag": "-p"  # -p flag for autonomous (run and exit)
-    },
-    "gemini": {
-        "command_template": "gemini --model {model} -y -i '{prompt}'",
-        "default_model": "gemini-3-pro-preview",
-        "fast_model": "gemini-3-flash-preview",
-        "interactive_flag": "",
-        "autonomous_flag": ""
-    },
-    "codex": {
-        "command_template": "codex --model {model} --dangerously-bypass-approvals-and-sandbox '{prompt}'",
-        "default_model": "gpt-5.2-codex",
-        "fast_model": "gpt-5.1-codex-mini",
-        "interactive_flag": "",
-        "autonomous_flag": ""
+    # Fallback CLI configs
+    CLI_CONFIGS = {
+        "claude": {
+            "command_template": "claude --model {model} --dangerously-skip-permissions {mode_flag} '{prompt}'",
+            "default_model": "opus-4-5",
+            "fast_model": "sonnet-4-5",
+            "interactive_flag": "",
+            "autonomous_flag": "-p"
+        },
+        "gemini": {
+            "command_template": "gemini --model {model} -y -i '{prompt}'",
+            "default_model": "gemini-3-pro-preview",
+            "fast_model": "gemini-3-flash-preview",
+            "interactive_flag": "",
+            "autonomous_flag": ""
+        },
+        "codex": {
+            "command_template": "codex --model {model} --dangerously-bypass-approvals-and-sandbox '{prompt}'",
+            "default_model": "gpt-5.2-codex",
+            "fast_model": "gpt-5.1-codex-mini",
+            "interactive_flag": "",
+            "autonomous_flag": ""
+        }
     }
-}
 
 
 def detect_terminal_env() -> str:
@@ -211,7 +229,8 @@ def spawn_terminal_window(cwd: str, command: str) -> Tuple[str, Optional[int]]:
         if terminal == "warp":
             # Warp: use semicolon to chain commands (more reliable than &&)
             warp_cmd = f"cd {shlex.quote(cwd)} ; {command}"
-            escaped_cmd = warp_cmd.replace('"', '\\"')
+            # Escape for AppleScript double-quoted string (prevent injection)
+            escaped_cmd = escape_for_applescript(warp_cmd)
 
             applescript = f'''
                 set the clipboard to "{escaped_cmd}"
@@ -250,8 +269,8 @@ def spawn_terminal_window(cwd: str, command: str) -> Tuple[str, Optional[int]]:
                 return f"Warp error: {result.stderr.strip()}", None
 
         if terminal == "terminal":
-            # Terminal.app
-            escaped_cmd = full_command.replace("\\", "\\\\").replace('"', '\\"')
+            # Terminal.app - escape for AppleScript double-quoted string
+            escaped_cmd = escape_for_applescript(full_command)
             result = subprocess.run(
                 ["osascript", "-e", f'tell application "Terminal" to do script "{escaped_cmd}"'],
                 capture_output=True,
@@ -300,12 +319,15 @@ def build_claude_command(
     # Escape the prompt for shell
     safe_prompt = prompt.replace("'", "'\\''")
 
+    # Quote model to prevent shell injection
+    safe_model = shlex.quote(model)
+
     if mode == "autonomous":
         # Use -p flag to run prompt and exit when done
-        return f"claude --model {model} --dangerously-skip-permissions -p '{safe_prompt}'"
+        return f"claude --model {safe_model} --dangerously-skip-permissions -p '{safe_prompt}'"
     else:
         # Interactive mode: pass prompt as argument (without -p) to start interactive with initial message
-        return f"claude --model {model} --dangerously-skip-permissions '{safe_prompt}'"
+        return f"claude --model {safe_model} --dangerously-skip-permissions '{safe_prompt}'"
 
 
 def build_cli_command(

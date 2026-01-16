@@ -722,6 +722,9 @@ widget_custom_text() {
 # Custom command - SECURITY: Only allows whitelisted commands
 # WARNING: Custom commands are disabled by default for security.
 # To enable, explicitly whitelist commands in config.
+#
+# Default whitelist: date, uptime, whoami, hostname, pwd, echo
+# Configure additional commands via config: allowed_commands: ["cmd1", "cmd2"]
 widget_custom_command() {
   local config
   config=$(get_widget_config "custom_command")
@@ -732,9 +735,19 @@ widget_custom_command() {
     return
   fi
 
+  # Default whitelist of safe, read-only commands
+  local -a default_whitelist=("date" "uptime" "whoami" "hostname" "pwd" "echo" "basename" "dirname")
+
+  # Get user-configured additional commands (if any)
+  local -a user_whitelist
+  mapfile -t user_whitelist < <(echo "$config" | jq -r '.allowed_commands // [] | .[]' 2>/dev/null)
+
+  # Combine whitelists
+  local -a whitelist=("${default_whitelist[@]}" "${user_whitelist[@]}")
+
   # Security: Only allow simple commands without shell metacharacters
   # Reject commands with dangerous patterns
-  if [[ "$command" =~ [\;\|\&\$\`\(\)\<\>\!] ]]; then
+  if [[ "$command" =~ [\;\|\&\$\`\(\)\<\>\!\~\#] ]]; then
     printf '%s' "[unsafe cmd]"
     return
   fi
@@ -747,8 +760,24 @@ widget_custom_command() {
     return
   fi
 
+  local cmd_name="${cmd_parts[0]}"
+
+  # SECURITY: Check if command is in whitelist
+  local allowed=false
+  for allowed_cmd in "${whitelist[@]}"; do
+    if [[ "$cmd_name" == "$allowed_cmd" ]]; then
+      allowed=true
+      break
+    fi
+  done
+
+  if [[ "$allowed" != "true" ]]; then
+    printf '%s' "[cmd not allowed]"
+    return
+  fi
+
   # Check if command exists
-  if ! command -v "${cmd_parts[0]}" &>/dev/null; then
+  if ! command -v "$cmd_name" &>/dev/null; then
     printf '%s' "[cmd not found]"
     return
   fi

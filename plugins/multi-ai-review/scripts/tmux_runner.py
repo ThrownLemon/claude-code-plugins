@@ -84,25 +84,32 @@ def build_cli_command(cli: str, prompt_file: Path, output_file: Path) -> str:
 
     The prompt is read from a file to avoid shell escaping issues.
     """
+    import shlex
+
     config = CLI_CONFIGS.get(cli)
     if not config:
         raise ValueError(f"Unknown CLI: {cli}")
 
     model = get_model(cli)
+    # Quote model to prevent shell injection (model can come from env var)
+    safe_model = shlex.quote(model)
+    # Quote file paths for safety
+    safe_prompt_file = shlex.quote(str(prompt_file))
+    safe_output_file = shlex.quote(str(output_file))
 
     # Read prompt from file using $(<file) syntax - avoids all escaping issues
-    prompt_ref = f'"$(<{prompt_file})"'
+    prompt_ref = f'"$(<{safe_prompt_file})"'
 
     if cli == "claude":
         # Claude: use -p for prompt, --dangerously-skip-permissions for non-interactive
-        cmd = f'claude --model {model} --dangerously-skip-permissions -p {prompt_ref} 2>&1 | tee {output_file}'
+        cmd = f'claude --model {safe_model} --dangerously-skip-permissions -p {prompt_ref} 2>&1 | tee {safe_output_file}'
     elif cli == "gemini":
         # Gemini: prompt as positional arg after flags, -y for auto-accept
-        cmd = f'gemini --model {model} -y {prompt_ref} 2>&1 | tee {output_file}'
+        cmd = f'gemini --model {safe_model} -y {prompt_ref} 2>&1 | tee {safe_output_file}'
     elif cli == "codex":
         # Codex: requires PTY for interactive UI
         # Use script command to provide pseudo-terminal
-        cmd = f'script -q {output_file} codex --model {model} --dangerously-bypass-approvals-and-sandbox {prompt_ref}'
+        cmd = f'script -q {safe_output_file} codex --model {safe_model} --dangerously-bypass-approvals-and-sandbox {prompt_ref}'
     else:
         raise ValueError(f"Unknown CLI: {cli}")
 

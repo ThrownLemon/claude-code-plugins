@@ -195,12 +195,21 @@ def aggregate_findings(review_id: str) -> dict:
         source_count = len(group["sources"])
 
         # Create merged finding
+        severity_order = ["trivial", "minor", "major", "critical"]
+
+        def get_severity_rank(s: str) -> int:
+            """Get severity rank, defaulting to 0 (trivial) for unknown values."""
+            try:
+                return severity_order.index(s)
+            except ValueError:
+                return 0  # Treat unknown severities as trivial
+
         merged = {
             "id": group["findings"][0]["id"],
             "category": group["findings"][0]["category"],
             "severity": max(
-                (f["severity"] for f in group["findings"]),
-                key=lambda s: ["trivial", "minor", "major", "critical"].index(s)
+                (f.get("severity", "trivial") for f in group["findings"]),
+                key=get_severity_rank
             ),
             "file": group["findings"][0]["file"],
             "line": group["findings"][0]["line"],
