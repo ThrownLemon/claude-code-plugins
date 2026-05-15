@@ -49,6 +49,12 @@ Example `config.json`:
 }
 ```
 
+> **Restrict permissions on this file** — it holds plaintext credentials:
+> ```bash
+> chmod 600 ~/.config/unifi-cli/config.json
+> ```
+> Prefer using `UNIFI_API_TOKEN` (a controller-issued API token) over username/password where supported by your controller version. Tokens can be revoked individually without rotating a password used elsewhere.
+
 ## Installation
 
 Add the plugin from the marketplace:

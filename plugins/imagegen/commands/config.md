@@ -93,7 +93,7 @@ API keys are read from environment variables (not stored in config):
 - `GEMINI_API_KEY` or `GOOGLE_API_KEY` - Google Gemini
 - `OPENAI_API_KEY` - OpenAI
 
-Set these in your shell profile or `.env` file.
+**Prefer a project-local `.env` file (`chmod 600`) loaded via direnv, or your OS secrets manager.** Avoid placing API keys in `.bashrc`/`.zshrc` — shell profiles get synced to dotfile repos and are readable by any process in your session.
 
 ## Model Options
 
