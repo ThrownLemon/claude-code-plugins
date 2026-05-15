@@ -88,7 +88,7 @@ A Stop hook will run the consult reviewer after every Claude turn — useful for
 }
 ```
 
-When `VERDICT: NEEDS FIXES` is returned, the script exits with code 2 so Claude Code surfaces the reviewer's notes back to the model.
+When the gate verdict is `NEEDS FIXES`, the script emits `{"decision":"block","reason":"..."}` on stdout and Claude Code surfaces the reviewer's notes back to the model so the next turn addresses them. `PASS` emits nothing and lets the session stop cleanly.
 
 ## Architecture
 

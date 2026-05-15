@@ -168,21 +168,25 @@ async function cmdStop(args) {
   const providerName = args.flags.provider || args.flags.p || "zai";
   const modelOverride = args.flags.model || args.flags.m;
 
-  // Claude Code passes the transcript path via env or JSON on stdin during Stop hooks.
-  // We accept either; we prefer --transcript, then CLAUDE_TRANSCRIPT_PATH, then stdin JSON.
+  // Stop hooks receive a JSON payload on stdin (transcript_path, cwd,
+  // session_id, etc.). When invoked manually via /consult:stop-gate, stdin
+  // is empty — we degrade to plain-text mode so humans can read the result.
   let transcriptPath = args.flags.transcript || process.env.CLAUDE_TRANSCRIPT_PATH;
   let hookPayload = null;
-  if (!transcriptPath && !process.stdin.isTTY) {
+  if (!process.stdin.isTTY) {
     const raw = readStdinIfPiped().trim();
     if (raw) {
       try {
         hookPayload = JSON.parse(raw);
-        transcriptPath = hookPayload.transcript_path || hookPayload.transcriptPath;
+        if (!transcriptPath) {
+          transcriptPath = hookPayload.transcript_path || hookPayload.transcriptPath;
+        }
       } catch {
         // not JSON — treat as plain context
       }
     }
   }
+  const isHookInvocation = hookPayload !== null;
 
   const tail = transcriptPath ? readFileSafe(transcriptPath, 60_000) : null;
   const cwd = (hookPayload && hookPayload.cwd) || process.cwd();
@@ -210,11 +214,21 @@ ${transcriptBlock}${diffBlock}`;
   });
 
   const text = result.content.trim();
-  console.log(text);
+  const needsFixes = /VERDICT:\s*NEEDS FIXES/i.test(text);
 
-  // If verdict is NEEDS FIXES, exit 2 so the Stop hook surfaces it to Claude.
-  // Otherwise exit 0 and let the session end.
-  if (/VERDICT:\s*NEEDS FIXES/i.test(text)) process.exit(2);
+  if (isHookInvocation) {
+    // Structured decision protocol — Claude Code reads stdout as JSON and
+    // surfaces `reason` back into the conversation when `decision === "block"`.
+    if (needsFixes) {
+      console.log(JSON.stringify({ decision: "block", reason: text }));
+    }
+    // PASS → emit nothing; exit 0 lets the Stop proceed.
+    return;
+  }
+
+  // Manual invocation (e.g. /consult:stop-gate) — show human-readable output.
+  console.log(text);
+  if (needsFixes) process.exit(2);
 }
 
 function cmdConfig() {
