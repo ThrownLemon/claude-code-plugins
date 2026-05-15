@@ -1,5 +1,5 @@
 ---
-description: Generate a video using OpenAI Sora
+description: Generate a video using OpenAI Sora. ⚠️ Sora API shuts down 2026-09-24 — use /video-gen:veo as the long-term alternative.
 arguments:
   - name: prompt
     description: Text description of the video to generate
@@ -22,6 +22,8 @@ arguments:
 ---
 
 # OpenAI Sora Video Generation
+
+> **⚠️ Deprecation**: OpenAI is discontinuing Sora. The consumer app shut down on 2026-04-26 and the `/v1/videos` API will shut down on **2026-09-24**. After that date the OpenAI/Sora path in this plugin will stop working — switch to `/video-gen:veo` (Google Veo). OpenAI has not announced an official replacement.
 
 Generate videos using OpenAI's Sora models.
 

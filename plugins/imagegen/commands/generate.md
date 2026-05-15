@@ -8,7 +8,7 @@ arguments:
     description: "Provider to use: google or openai (default: from config)"
     required: false
   - name: model
-    description: Specific model to use (e.g., gemini-2.5-flash-image, gpt-image-1.5)
+    description: Specific model to use (e.g., gemini-2.5-flash-image, gpt-image-2)
     required: false
   - name: size
     description: "Size/aspect ratio (1:1, 16:9, landscape, portrait, square)"
@@ -33,9 +33,9 @@ Generate AI images from text prompts using either Google Gemini (Gemini) or Open
 - **Aspect Ratios**: 1:1, 16:9, 9:16, 4:3, 3:4, 21:9
 
 ### OpenAI GPT-Image
-- **Models**: `gpt-image-1.5` (best), `gpt-image-1`, `gpt-image-1-mini`
-- **Features**: Transparent backgrounds, excellent text rendering
-- **Sizes**: 1024x1024, 1536x1024 (landscape), 1024x1536 (portrait)
+- **Models**: `gpt-image-2` (default, state-of-the-art), `gpt-image-1.5`, `gpt-image-1` (only one with transparency support), `gpt-image-1-mini`
+- **Features**: Excellent text rendering. gpt-image-2 has built-in reasoning ("thinking mode"). Transparent backgrounds available on gpt-image-1 only.
+- **Sizes**: 1024x1024, 1536x1024 (landscape), 1024x1536 (portrait), 2048x2048
 
 ## Examples
 

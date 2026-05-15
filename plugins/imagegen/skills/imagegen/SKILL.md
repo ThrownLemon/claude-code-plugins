@@ -78,8 +78,8 @@ For complex image generation tasks, delegate to the `image-generator` subagent w
 - API Key: `GEMINI_API_KEY` or `GOOGLE_API_KEY`
 
 **OpenAI GPT-Image**
-- Models: `gpt-image-1.5`, `gpt-image-1`, `gpt-image-1-mini`
-- Best for: Text in images, transparent backgrounds, precise edits
+- Models: `gpt-image-2` (default), `gpt-image-1.5`, `gpt-image-1` (the only one supporting transparent backgrounds), `gpt-image-1-mini`
+- Best for: Text in images, precise edits. gpt-image-2 has built-in reasoning ("thinking mode") and is state-of-the-art. Use `gpt-image-1` when you need transparency.
 - API Key: `OPENAI_API_KEY`
 
 ### Common Sizes/Aspect Ratios

@@ -95,13 +95,15 @@ pip install google-genai openai Pillow
 
 ## Providers
 
-### Google Gemini (Imagen)
+### Google Gemini Image (a.k.a. "Nano Banana")
 
 | Model | Description |
 |-------|-------------|
 | `gemini-2.5-flash-image` | Fast, efficient (default) |
 | `gemini-3-pro-image-preview` | Professional quality, better consistency |
 | `gemini-3.1-flash-image-preview` | Latest Flash variant (preview) |
+
+> **Note**: This plugin uses **Gemini Image** models, not the older **Imagen 4** API. Google announced the Imagen 4 family (`imagen-4.0-generate-001` etc.) will **shut down on 2026-06-24** and is steering users to Gemini Image. The plugin is already on the recommended path.
 
 **Best for:**
 - Character consistency
@@ -113,11 +115,14 @@ pip install google-genai openai Pillow
 
 | Model | Description |
 |-------|-------------|
+| `gpt-image-2` | State-of-the-art (default, released 2026-04-21). Has built-in "thinking mode" reasoning. Generation can take up to 2 min for complex prompts. |
+| `gpt-image-1.5` | Previous high-quality model |
+| `gpt-image-1` | Previous default; the only GPT-Image variant that currently supports **transparent backgrounds** |
 | `gpt-image-1-mini` | Fast, lower cost |
-| `gpt-image-1` | Balanced (default) |
-| `gpt-image-1.5` | Highest quality on the Images API |
 
-> **Note**: GPT Image 2 (ChatGPT Images 2.0) is the latest in the GPT Image line but is currently only available through the ChatGPT Plus/Pro UI and the Codex CLI — not via a standard `OPENAI_API_KEY` against `/v1/images/generations`. The `gpt-image-2` skill in Claude Code plugins handles the Codex-CLI route separately. This plugin will adopt `gpt-image-2` as the default once OpenAI exposes it on the Images API.
+> **Note on transparency**: `gpt-image-2` does not currently support transparent backgrounds (only `opaque` or `auto`). If you need transparency, override with `--model gpt-image-1`. OpenAI is expected to add this to gpt-image-2 in a future update.
+
+> **Note on sizes**: `gpt-image-2` accepts flexible resolutions — max edge 3840px, edges must be multiples of 16, long:short aspect ratio ≤ 3:1. Common sizes still work: `1024x1024`, `1536x1024`, `1024x1536`, `2048x2048`.
 
 **Best for:**
 - Text in images

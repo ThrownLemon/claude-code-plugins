@@ -20,7 +20,11 @@ DEFAULT_CONFIG = {
         "response_modalities": ["IMAGE"]
     },
     "openai": {
-        "model": "gpt-image-1",  # or "gpt-image-1.5", "gpt-image-1-mini"
+        # gpt-image-2 (released 2026-04-21) is now on /v1/images/generations
+        # with the same client.images.generate() shape. Switch to gpt-image-1
+        # if you need transparent backgrounds — gpt-image-2 doesn't support
+        # transparency yet.
+        "model": "gpt-image-2",  # or "gpt-image-1.5", "gpt-image-1", "gpt-image-1-mini"
         "size": "1024x1024",
         "quality": "high",
         "background": "auto"

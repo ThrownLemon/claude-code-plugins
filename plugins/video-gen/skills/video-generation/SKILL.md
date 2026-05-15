@@ -74,13 +74,15 @@ The `video-generator` subagent will:
 - Resolution: 720p, 1080p, 4K
 - Aspect: 16:9, 9:16
 
-**OpenAI Sora**:
+**OpenAI Sora** (⚠️ being discontinued — see deprecation below):
 | Model | ID | Use Case |
 |-------|-----|----------|
 | Sora 2 | `sora-2` | Fast iteration, exploration |
 | Sora 2 Pro | `sora-2-pro` | Production quality |
 
 Snapshot variants available: `sora-2-2025-10-06`, `sora-2-2025-12-08`, `sora-2-pro-2025-10-06`
+
+> **⚠️ Sora Deprecation Notice**: OpenAI is shutting down the Sora product. The consumer app went dark on **April 26, 2026**, and the `/v1/videos` API will be discontinued on **September 24, 2026**. There is no official OpenAI replacement. After that date, this plugin's OpenAI/Sora path will stop working — switch to the Google Veo path or a third-party provider (Runway, Pika, etc.).
 
 - Duration: 4, 8, 12 seconds
 - Aspect: 16:9, 9:16, 1:1

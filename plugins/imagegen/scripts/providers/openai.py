@@ -70,7 +70,7 @@ class OpenAIProvider(ImageProvider):
 
     @property
     def default_model(self) -> str:
-        return "gpt-image-1"
+        return "gpt-image-2"
 
     def _get_api_key(self) -> Optional[str]:
         """Get OpenAI API key from environment."""

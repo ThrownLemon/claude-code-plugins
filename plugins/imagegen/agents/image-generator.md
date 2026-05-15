@@ -119,8 +119,8 @@ Common issues and solutions:
 |----------|---------------------|
 | General generation | Google (gemini-2.5-flash-image) |
 | Character consistency | Google (gemini-3-pro-image-preview) |
-| Images with text | OpenAI (gpt-image-1.5) |
-| Transparent backgrounds | OpenAI |
+| Images with text | OpenAI (gpt-image-2) |
+| Transparent backgrounds | OpenAI (gpt-image-1 — gpt-image-2 doesn't support transparency yet) |
 | Multi-turn iteration | Google |
 | Speed/cost optimization | Google (flash) or OpenAI (mini) |
 

@@ -8,7 +8,7 @@ arguments:
     description: Google model to use (default: gemini-2.5-flash-image)
     required: false
   - name: openai-model
-    description: OpenAI model to use (default: gpt-image-1)
+    description: OpenAI model to use (default: gpt-image-2)
     required: false
   - name: size
     description: Target size/aspect ratio

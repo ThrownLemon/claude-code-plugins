@@ -24,7 +24,7 @@ Configure default settings for the imagegen plugin including default provider, m
 | `output_dir` | Default output directory | ./generated-images |
 | `google.model` | Default Google model | gemini-2.5-flash-image |
 | `google.aspect_ratio` | Default aspect ratio | 1:1 |
-| `openai.model` | Default OpenAI model | gpt-image-1 |
+| `openai.model` | Default OpenAI model | gpt-image-2 |
 | `openai.size` | Default size | 1024x1024 |
 | `openai.quality` | Default quality | high |
 | `naming.prefix` | Filename prefix | img |
@@ -87,10 +87,12 @@ Set these in your shell profile or `.env` file.
 ## Model Options
 
 ### Google Models
-- `gemini-2.5-flash-image` - Fast, efficient
+- `gemini-2.5-flash-image` - Fast, efficient (default)
 - `gemini-3-pro-image-preview` - Professional, better consistency
+- `gemini-3.1-flash-image-preview` - Latest Flash variant (preview)
 
 ### OpenAI Models
+- `gpt-image-2` - State-of-the-art (default; no transparency yet)
+- `gpt-image-1.5` - Previous high-quality
+- `gpt-image-1` - Previous default; supports transparent backgrounds
 - `gpt-image-1-mini` - Fast, lower cost
-- `gpt-image-1` - Balanced
-- `gpt-image-1.5` - Best quality
