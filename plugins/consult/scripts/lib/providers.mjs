@@ -18,13 +18,13 @@ export const PROVIDERS = {
     label: "Google Gemini",
     url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
     keyEnv: ["GEMINI_API_KEY", "GOOGLE_API_KEY"],
-    // gemini-pro-latest is Google's stable alias that always points at the
-    // current top model (3.1-pro-preview as of 2026-05). Use the alias so
-    // the plugin tracks Google's recommendation without per-release churn.
-    defaultModel: "gemini-pro-latest",
+    // gemini-flash-latest tracks Google's current top Flash model and has
+    // much more generous free-tier limits than the Pro tier. Override per
+    // call with `--model gemini-pro-latest` when you need the heavier model.
+    defaultModel: "gemini-flash-latest",
     models: [
-      "gemini-pro-latest",
       "gemini-flash-latest",
+      "gemini-pro-latest",
       "gemini-3.1-pro-preview",
       "gemini-3-pro-preview",
       "gemini-2.5-pro",

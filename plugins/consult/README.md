@@ -118,7 +118,7 @@ Both providers expose an OpenAI-compatible `/chat/completions` endpoint, so a si
 | Provider | Default model | Notes |
 |----------|---------------|-------|
 | `zai`    | `glm-5.1`     | Reasoning model — burns output tokens on internal reasoning, so the plugin defaults to a higher token budget. Other live models on the coding endpoint: `glm-5-turbo`, `glm-5`, `glm-4.7`, `glm-4.6`, `glm-4.5`, `glm-4.5-air`. |
-| `gemini` | `gemini-pro-latest` | Google's stable alias that always points at the current top Gemini model (3.1-pro-preview as of 2026-05). Use `gemini-flash-latest` for cheaper/faster. |
+| `gemini` | `gemini-flash-latest` | Google's stable alias for the current top Flash model — fast, cheap, generous free-tier limits. Override with `--model gemini-pro-latest` when you need the heavier model. |
 
 Endpoints:
 
