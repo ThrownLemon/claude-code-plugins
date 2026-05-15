@@ -7,16 +7,29 @@ export const PROVIDERS = {
     label: "Z.AI (GLM)",
     url: "https://api.z.ai/api/coding/paas/v4/chat/completions",
     keyEnv: ["ZAI_API_KEY", "ZHIPU_API_KEY", "GLM_API_KEY"],
-    defaultModel: "glm-4.6",
-    models: ["glm-4.6", "glm-4.5", "glm-4.5-air"],
-    docsUrl: "https://docs.z.ai/guides/llm/glm-4.6",
+    defaultModel: "glm-5.1",
+    // Current model list (live from /v4/models on 2026-05-16). glm-5.x are
+    // reasoning models — they spend output tokens on internal reasoning
+    // before producing visible content, so prefer higher max-tokens budgets.
+    models: ["glm-5.1", "glm-5-turbo", "glm-5", "glm-4.7", "glm-4.6", "glm-4.5", "glm-4.5-air"],
+    docsUrl: "https://docs.z.ai",
   },
   gemini: {
     label: "Google Gemini",
     url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
     keyEnv: ["GEMINI_API_KEY", "GOOGLE_API_KEY"],
-    defaultModel: "gemini-2.5-pro",
-    models: ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash"],
+    // gemini-pro-latest is Google's stable alias that always points at the
+    // current top model (3.1-pro-preview as of 2026-05). Use the alias so
+    // the plugin tracks Google's recommendation without per-release churn.
+    defaultModel: "gemini-pro-latest",
+    models: [
+      "gemini-pro-latest",
+      "gemini-flash-latest",
+      "gemini-3.1-pro-preview",
+      "gemini-3-pro-preview",
+      "gemini-2.5-pro",
+      "gemini-2.5-flash",
+    ],
     docsUrl: "https://ai.google.dev/gemini-api/docs/openai",
   },
 };

@@ -119,7 +119,7 @@ async function cmdAsk(args) {
   const providerName = args.flags.provider || args.flags.p;
   if (!providerName) throw new Error("--provider is required (e.g. --provider zai)");
   const modelOverride = args.flags.model || args.flags.m;
-  const maxTokens = args.flags["max-tokens"] ? Number(args.flags["max-tokens"]) : 4096;
+  const maxTokens = args.flags["max-tokens"] ? Number(args.flags["max-tokens"]) : 8192;
   const system = args.flags.system || null;
 
   const positional = args._.slice(1).join(" ").trim();
@@ -158,7 +158,7 @@ async function cmdReview(args) {
     modelOverride,
     system: null,
     user: prompt,
-    maxTokens: 4096,
+    maxTokens: 8192,
   });
 
   console.log(result.content.trim());
@@ -206,7 +206,7 @@ ${transcriptBlock}${diffBlock}`;
     modelOverride,
     system: null,
     user,
-    maxTokens: 1500,
+    maxTokens: 4096,
   });
 
   const text = result.content.trim();

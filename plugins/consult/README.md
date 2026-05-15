@@ -115,12 +115,17 @@ Both providers expose an OpenAI-compatible `/chat/completions` endpoint, so a si
 
 ## Provider models
 
-| Provider | Default model | Endpoint |
-|----------|---------------|----------|
-| `zai`    | `glm-4.6`     | `https://api.z.ai/api/coding/paas/v4/chat/completions` |
-| `gemini` | `gemini-2.5-pro` | `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` |
+| Provider | Default model | Notes |
+|----------|---------------|-------|
+| `zai`    | `glm-5.1`     | Reasoning model — burns output tokens on internal reasoning, so the plugin defaults to a higher token budget. Other live models on the coding endpoint: `glm-5-turbo`, `glm-5`, `glm-4.7`, `glm-4.6`, `glm-4.5`, `glm-4.5-air`. |
+| `gemini` | `gemini-pro-latest` | Google's stable alias that always points at the current top Gemini model (3.1-pro-preview as of 2026-05). Use `gemini-flash-latest` for cheaper/faster. |
 
-Override with `--model` on the CLI or as a third positional arg pattern in scripts.
+Endpoints:
+
+- z.ai: `https://api.z.ai/api/coding/paas/v4/chat/completions`
+- Gemini: `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`
+
+Override per-call with `--model` (e.g. `node consult.mjs ask --provider zai --model glm-4.6 "..."`).
 
 ## License
 
