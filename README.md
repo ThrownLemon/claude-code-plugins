@@ -14,6 +14,7 @@ A curated collection of Claude Code plugins for code quality, security, producti
   - [UI/UX Pro Max](#uiux-pro-max)
   - [Gmail CLI](#gmail-cli)
   - [Consult](#consult)
+- [Related Marketplaces](#related-marketplaces)
 - [Plugin Architecture](#plugin-architecture)
 - [Adding New Plugins](#adding-new-plugins)
 - [FAQ](#faq)
@@ -716,6 +717,25 @@ export GEMINI_API_KEY="<your-gemini-key>"  # https://ai.google.dev
 When the gate returns `NEEDS FIXES`, the script exits 2 and Claude Code surfaces the reviewer's notes back to the model.
 
 Both providers share an OpenAI-compatible client, so adding more (Anthropic, Mistral, etc.) is a single entry in `scripts/lib/providers.mjs`.
+
+---
+
+## Related Marketplaces
+
+Other Claude Code marketplaces I maintain that are kept separate (different scope, different update cadence):
+
+### [servicenow-plugin](https://github.com/ThrownLemon/servicenow-plugin)
+
+ServiceNow domain expertise plugin — catalog builder, report builder, UI-component scaffolder, and a docs-first workflow with Playwright verification.
+
+Useful if you work with ServiceNow (catalog items, reports, Now Experience components). It is its own single-plugin marketplace, so install it independently:
+
+```bash
+/plugin marketplace add ThrownLemon/servicenow-plugin
+/plugin install servicenow-plugin@servicenow-plugin
+```
+
+Skills auto-trigger on phrases like *"create a catalog item"*, *"build a report"*, *"scaffold a Now Experience component"*. Includes a `SessionStart` hook that checks for required CLIs (`snc`, `cr`, etc.) and a `PreToolUse` preflight on Bash commands.
 
 ---
 
