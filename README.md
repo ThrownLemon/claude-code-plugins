@@ -13,6 +13,7 @@ A curated collection of Claude Code plugins for code quality, security, producti
   - [ImageGen](#imagegen)
   - [UI/UX Pro Max](#uiux-pro-max)
   - [Gmail CLI](#gmail-cli)
+  - [Consult](#consult)
 - [Plugin Architecture](#plugin-architecture)
 - [Adding New Plugins](#adding-new-plugins)
 - [FAQ](#faq)
@@ -53,6 +54,7 @@ Plugins work in different ways:
 | [imagegen](#imagegen) | AI image generation with Google Gemini and OpenAI |
 | [ui-ux-pro-max](#uiux-pro-max) | Searchable database of UI/UX design intelligence |
 | [gmcli](#gmail-cli) | Gmail integration for terminal-based email management |
+| [consult](#consult) | Third-opinion AI consultation via z.ai (GLM-4.6) and Gemini — second opinions, reviews, optional stop-gate hook |
 
 ---
 
@@ -662,6 +664,58 @@ Handles all email operations:
 | Create draft | `gmcli draft create ...` |
 | List labels | `gmcli labels` |
 | Add label | `gmcli label add <thread_id> "<labels>"` |
+
+---
+
+### Consult
+
+**Description**: Third-opinion AI consultation. Calls **Z.AI (GLM-4.6)** or **Google Gemini** directly via API for second opinions, code reviews, and an optional stop-gate review hook.
+
+Use it the same way you'd use the codex plugin's `/codex:rescue` — except the rescuer is a different model family, and there's nothing to install beyond an API key. No external CLI binary required (uses Node 18+ `fetch`).
+
+**Setup:**
+
+```bash
+export ZAI_API_KEY="<your-zai-key>"        # https://docs.z.ai
+export GEMINI_API_KEY="<your-gemini-key>"  # https://ai.google.dev
+```
+
+**Commands:**
+
+| Command | Purpose |
+|--------|---------|
+| `/consult:ask <provider> "prompt"` | One-shot question to GLM or Gemini |
+| `/consult:review [provider] [base] [focus]` | Auto-collected git-diff review with `SHIP IT / NEEDS WORK / BLOCKER` verdict |
+| `/consult:stop-gate [provider]` | Stop-gate review pass; outputs `VERDICT: PASS \| NEEDS FIXES` |
+| `/consult:config` | Show provider/key status |
+
+**Examples:**
+
+```
+/consult:ask zai     "Is dropping the unique index on user_emails safe under concurrent writes?"
+/consult:review gemini origin/main "security"
+/consult:stop-gate zai
+```
+
+**Optional Stop hook** (opt-in — consumes API tokens on every turn). Add to `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "Stop": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/consult.mjs stop --provider zai"
+      }]
+    }]
+  }
+}
+```
+
+When the gate returns `NEEDS FIXES`, the script exits 2 and Claude Code surfaces the reviewer's notes back to the model.
+
+Both providers share an OpenAI-compatible client, so adding more (Anthropic, Mistral, etc.) is a single entry in `scripts/lib/providers.mjs`.
 
 ---
 

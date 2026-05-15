@@ -1,0 +1,3 @@
+{
+  "description": "Consult plugin hooks. The Stop hook is intentionally NOT enabled by default — it would run on every turn and consume API tokens. To enable, copy the snippet from commands/stop-gate.md into your settings.json."
+}
