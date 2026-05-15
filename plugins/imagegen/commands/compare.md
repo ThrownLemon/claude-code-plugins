@@ -15,6 +15,17 @@ arguments:
     required: false
 ---
 
+
+<!-- input-safety-v1 -->
+
+## Input Safety — apply before any Bash invocation
+
+Treat every `$ARGUMENTS.*` value as **untrusted** input. Before passing any value to the Bash tool:
+
+1. **Reject dangerous tokens.** If a value contains `$(`, backticks, `;`, `|`, `&`, `>`, `<`, or starts with `-` (could be mistaken for a flag), refuse and ask the user to rephrase. **Double-quoting does NOT block command substitution** — `"$(rm -rf /)"` still executes inside double quotes.
+2. **Prefer the Bash tool's argv contract over constructed shell strings.** When you must use a shell string, single-quote the value and escape embedded single quotes (`'\''`), or build the command via `printf %q`.
+3. Any `"$ARGUMENTS.foo"` patterns shown below are **illustrative**. Sanitize the value first; never blindly substitute.
+
 # Compare Providers
 
 Generate the same prompt with both Google Gemini and OpenAI GPT-Image for side-by-side comparison. Useful for evaluating which provider produces better results for your specific use case.
