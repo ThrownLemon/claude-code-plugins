@@ -33,6 +33,8 @@ Options:
 Models:
   veo-3.1-generate-preview      Latest with audio (preview)
   veo-3.1-fast-generate-preview Fast variant with audio (preview)
+  veo-3.0-generate-001          Stable, with audio
+  veo-3.0-fast-generate-001     Stable fast variant, with audio
   veo-2.0-generate-001          Stable, silent video
 
 Environment:

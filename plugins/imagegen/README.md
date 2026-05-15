@@ -101,6 +101,7 @@ pip install google-genai openai Pillow
 |-------|-------------|
 | `gemini-2.5-flash-image` | Fast, efficient (default) |
 | `gemini-3-pro-image-preview` | Professional quality, better consistency |
+| `gemini-3.1-flash-image-preview` | Latest Flash variant (preview) |
 
 **Best for:**
 - Character consistency
@@ -114,7 +115,9 @@ pip install google-genai openai Pillow
 |-------|-------------|
 | `gpt-image-1-mini` | Fast, lower cost |
 | `gpt-image-1` | Balanced (default) |
-| `gpt-image-1.5` | Highest quality |
+| `gpt-image-1.5` | Highest quality on the Images API |
+
+> **Note**: GPT Image 2 (ChatGPT Images 2.0) is the latest in the GPT Image line but is currently only available through the ChatGPT Plus/Pro UI and the Codex CLI — not via a standard `OPENAI_API_KEY` against `/v1/images/generations`. The `gpt-image-2` skill in Claude Code plugins handles the Codex-CLI route separately. This plugin will adopt `gpt-image-2` as the default once OpenAI exposes it on the Images API.
 
 **Best for:**
 - Text in images

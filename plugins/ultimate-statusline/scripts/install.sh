@@ -144,7 +144,7 @@ echo ""
 # Step 5: Test the statusline
 echo -e "${BLUE}Testing statusline...${NC}"
 
-TEST_INPUT='{"model":{"id":"claude-opus-4-5-20251101","display_name":"Opus 4.5"},"context_window":{"total_input_tokens":45000,"total_output_tokens":8000,"context_window_size":200000},"cost":{"total_cost_usd":2.34,"total_duration_ms":3600000},"workspace":{"current_dir":"'$HOME'/test-project"}}'
+TEST_INPUT='{"model":{"id":"claude-opus-4-7","display_name":"Opus 4.7"},"context_window":{"total_input_tokens":45000,"total_output_tokens":8000,"context_window_size":200000},"cost":{"total_cost_usd":2.34,"total_duration_ms":3600000},"workspace":{"current_dir":"'$HOME'/test-project"}}'
 
 echo -e "${BLUE}Sample output:${NC}"
 echo "$TEST_INPUT" | "$STATUSLINE_SCRIPT"

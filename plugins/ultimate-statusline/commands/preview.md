@@ -43,7 +43,7 @@ Preview how your statusline will look with sample data, without modifying settin
 2. Generate sample JSON input data simulating a Claude Code session:
    ```json
    {
-     "model": {"id": "claude-opus-4-5-20251101", "display_name": "Opus 4.5"},
+     "model": {"id": "claude-opus-4-7", "display_name": "Opus 4.7"},
      "context_window": {
        "total_input_tokens": 45000,
        "total_output_tokens": 8000,

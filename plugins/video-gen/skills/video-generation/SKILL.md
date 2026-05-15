@@ -66,6 +66,8 @@ The `video-generator` subagent will:
 |-------|---------|--------|-------|
 | Veo 3.1 | `veo-3.1-generate-preview` | Preview | Yes |
 | Veo 3.1 Fast | `veo-3.1-fast-generate-preview` | Preview | Yes |
+| Veo 3.0 | `veo-3.0-generate-001` | Stable | Yes |
+| Veo 3.0 Fast | `veo-3.0-fast-generate-001` | Stable | Yes |
 | Veo 2.0 | `veo-2.0-generate-001` | Stable | No |
 
 - Duration: 4, 6, 8 seconds
