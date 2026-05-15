@@ -118,6 +118,26 @@
       "category": "infrastructure"
     },
     {
+      "name": "bambu",
+      "description": "Control Bambu Lab X1Plus 3D printers via the bambu CLI \u2014 status, send prints, calibration, filament management, and diagnostics with safety confirmations on destructive ops.",
+      "version": "1.0.0",
+      "author": {
+        "name": "ThrownLemon"
+      },
+      "source": "./plugins/bambu",
+      "category": "infrastructure"
+    },
+    {
+      "name": "unifi",
+      "description": "Manage UniFi network devices via the unifi CLI \u2014 sites, clients, devices, port forwards, DPI stats. Includes troubleshooter agent for diagnosing wifi/client/device issues.",
+      "version": "1.0.0",
+      "author": {
+        "name": "ThrownLemon"
+      },
+      "source": "./plugins/unifi",
+      "category": "infrastructure"
+    },
+    {
       "name": "ultimate-statusline",
       "description": "Ultimate statusline for Claude Code - 30+ widgets including model info, git status, context usage, costs, burn rate, MCP status, and more with customizable themes",
       "version": "1.0.0",

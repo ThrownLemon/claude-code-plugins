@@ -56,6 +56,9 @@ Plugins work in different ways:
 | [ui-ux-pro-max](#uiux-pro-max) | Searchable database of UI/UX design intelligence |
 | [gmcli](#gmail-cli) | Gmail integration for terminal-based email management |
 | [consult](#consult) | Third-opinion AI consultation via z.ai (GLM-4.6) and Gemini — second opinions, reviews, optional stop-gate hook |
+| [cloudflare](#cloudflare) | Cloudflare management via the cf CLI — DNS, tunnels, zones, cache purge, zero-trust diagnostics |
+| [bambu](#bambu) | Bambu Lab X1Plus 3D printer control — status, send prints, calibration, filament, diagnostics |
+| [unifi](#unifi) | UniFi network management — sites, clients, devices, port forwards, troubleshooter agent |
 
 ---
 

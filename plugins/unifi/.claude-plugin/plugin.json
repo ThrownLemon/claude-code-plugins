@@ -1,0 +1,8 @@
+{
+  "name": "unifi",
+  "version": "1.0.0",
+  "description": "Manage UniFi network devices, clients, sites, and diagnostics via the unifi CLI (github.com/ThrownLemon/unifi-cli). Provides commands for client/device/site management, a network-awareness skill, and a troubleshooter agent.",
+  "author": {
+    "name": "ThrownLemon"
+  }
+}
