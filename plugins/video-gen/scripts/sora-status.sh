@@ -7,7 +7,7 @@ set -e
 # Sora EOL guard — check before any API call
 _SORA_EOL_DATE="20260924"
 _TODAY=$(date +%Y%m%d)
-if [[ "$_TODAY" > "$_SORA_EOL_DATE" ]] || [[ "$_TODAY" = "$_SORA_EOL_DATE" ]]; then
+if [[ "$_TODAY" -ge "$_SORA_EOL_DATE" ]]; then
     echo "Error: OpenAI Sora /v1/videos retired 2026-09-24 — use Veo via /video-gen:veo" >&2
     exit 1
 else
@@ -85,16 +85,25 @@ fi
 # API endpoint
 API_BASE="https://api.openai.com/v1"
 
-# Retry-with-backoff helper: 3 attempts, exponential delay (2s, 4s)
-# Retries on HTTP 429/5xx (detected by .error.code in JSON response)
+# Retry-with-backoff helper: 3 attempts, exponential delay (2s, 4s).
+# Branches on the HTTP status code (via curl -w) rather than the JSON body —
+# OpenAI returns .error.code as a string (e.g. "rate_limit_exceeded"), so a
+# numeric test on it is unreliable. Retries on 429, any 5xx, and 000
+# (connection failure); returns the response body for everything else.
+_retryable_status() {
+    case "$1" in
+        429 | 5?? | 000) return 0 ;;
+        *) return 1 ;;
+    esac
+}
 _http_retry() {
-    local _attempt=1 _max=3 _delay=2 _resp
+    local _attempt=1 _max=3 _delay=2 _resp _code _body
     while [ "$_attempt" -le "$_max" ]; do
-        _resp=$(curl -sS --connect-timeout 30 --max-time 60 "$@")
-        local _code
-        _code=$(echo "$_resp" | jq -r '.error.code // empty' 2>/dev/null)
-        if [ -z "$_code" ] || { [ "$_code" -ne 429 ] 2>/dev/null && [ "$_code" -lt 500 ] 2>/dev/null; }; then
-            echo "$_resp"
+        _resp=$(curl -sS --connect-timeout 30 --max-time 60 -w '\n%{http_code}' "$@")
+        _code=$(printf '%s' "$_resp" | tail -n1)
+        _body=$(printf '%s' "$_resp" | sed '$d')
+        if ! _retryable_status "$_code"; then
+            printf '%s' "$_body"
             return 0
         fi
         if [ "$_attempt" -lt "$_max" ]; then
@@ -104,7 +113,7 @@ _http_retry() {
         fi
         _attempt=$(( _attempt + 1 ))
     done
-    echo "$_resp"
+    printf '%s' "$_body"
 }
 
 # Get video status

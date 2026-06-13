@@ -7,7 +7,7 @@ set -e
 # Sora EOL guard — check before any API call
 _SORA_EOL_DATE="20260924"
 _TODAY=$(date +%Y%m%d)
-if [[ "$_TODAY" > "$_SORA_EOL_DATE" ]] || [[ "$_TODAY" = "$_SORA_EOL_DATE" ]]; then
+if [[ "$_TODAY" -ge "$_SORA_EOL_DATE" ]]; then
     echo "Error: OpenAI Sora /v1/videos retired 2026-09-24 — use Veo via /video-gen:veo" >&2
     exit 1
 else

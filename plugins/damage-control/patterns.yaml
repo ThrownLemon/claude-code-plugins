@@ -299,10 +299,10 @@ bashToolPatterns:
   - pattern: '\bwget\b.*\|\s*(bash|sh|zsh|ksh|dash)\b'
     reason: wget piped to shell (RCE via remote script)
 
-  - pattern: '\bcurl\b.*\|\s*sudo\s+(bash|sh|zsh)\b'
+  - pattern: '\bcurl\b.*\|\s*sudo\s+(bash|sh|zsh|ksh|dash)\b'
     reason: curl piped to sudo shell (RCE with elevated privileges)
 
-  - pattern: '\bwget\b.*\|\s*sudo\s+(bash|sh|zsh)\b'
+  - pattern: '\bwget\b.*\|\s*sudo\s+(bash|sh|zsh|ksh|dash)\b'
     reason: wget piped to sudo shell (RCE with elevated privileges)
 
   - pattern: '\bbase64\s+(-d|--decode)\b.*\|\s*(bash|sh|zsh|ksh|dash)\b'

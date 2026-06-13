@@ -262,7 +262,14 @@ function finalizeFromJson({ provider, model, rawText }) {
   }
   const choice = parsed.choices?.[0];
   const message = choice?.message ?? {};
-  const content = typeof message.content === "string" ? message.content : JSON.stringify(message.content ?? "");
+  // Keep null/undefined as "" (not the literal string '""'), so the empty-content
+  // guard in finalizeContent fires correctly instead of seeing truthy `""`.
+  const content =
+    typeof message.content === "string"
+      ? message.content
+      : message.content != null
+        ? JSON.stringify(message.content)
+        : "";
   return finalizeContent({
     provider,
     model: parsed.model ?? model,

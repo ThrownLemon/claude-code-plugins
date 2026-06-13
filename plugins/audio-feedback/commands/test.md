@@ -94,8 +94,9 @@ If `$ARGUMENTS.type` is `voice` or `all`, test TTS:
 
 ```bash
 # Test voice announcement using configured endpoint
-# Note: afplay (macOS) cannot read stdin — write to a temp file first,
-# exactly as the plugin's play_tts() function does at runtime.
+# Note: afplay (macOS) cannot read stdin — write to a temp file first. This
+# test adopts the same temp-file pattern play_tts() uses for afplay at runtime
+# (play_tts() takes audio on stdin and creates the temp file internally).
 KOKORO_URL="${KOKORO_TTS_URL:-http://localhost:8880}"
 _TTS_TMP=$(mktemp "${TMPDIR:-/tmp}/tts-test.XXXXXX.mp3")
 curl -sS --connect-timeout 5 --max-time 30 "${KOKORO_URL}/v1/audio/speech" \

@@ -8,7 +8,7 @@
           {
             "type": "command",
             "command": "uv run \"${CLAUDE_PLUGIN_ROOT}/scripts/bash-tool-damage-control.py\"",
-            "timeout": 10
+            "timeout": 30
           }
         ]
       },
@@ -18,7 +18,7 @@
           {
             "type": "command",
             "command": "uv run \"${CLAUDE_PLUGIN_ROOT}/scripts/edit-tool-damage-control.py\"",
-            "timeout": 10
+            "timeout": 30
           }
         ]
       },
@@ -28,7 +28,7 @@
           {
             "type": "command",
             "command": "uv run \"${CLAUDE_PLUGIN_ROOT}/scripts/edit-tool-damage-control.py\"",
-            "timeout": 10
+            "timeout": 30
           }
         ]
       },
@@ -38,7 +38,7 @@
           {
             "type": "command",
             "command": "uv run \"${CLAUDE_PLUGIN_ROOT}/scripts/write-tool-damage-control.py\"",
-            "timeout": 10
+            "timeout": 30
           }
         ]
       },
@@ -48,7 +48,7 @@
           {
             "type": "command",
             "command": "uv run \"${CLAUDE_PLUGIN_ROOT}/scripts/read-tool-damage-control.py\"",
-            "timeout": 10
+            "timeout": 30
           }
         ]
       }

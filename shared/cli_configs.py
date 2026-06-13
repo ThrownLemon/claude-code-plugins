@@ -32,9 +32,11 @@ CLI_CONFIGS = {
     },
     "gemini": {
         "command": "gemini",
-        # -latest aliases auto-track Google's current models (no stale pins).
-        "default_model": "gemini-pro-latest",
-        "fast_model": "gemini-flash-latest",
+        # Concrete GA ids: the gemini CLI rejects rolling "-latest" aliases with
+        # ModelNotFoundError (those only work on the OpenAI-compatible API, which
+        # is what the consult plugin uses). Bump these when a newer GA id ships.
+        "default_model": "gemini-2.5-pro",
+        "fast_model": "gemini-2.5-flash",
         "env_model": "MULTI_REVIEW_GEMINI_MODEL",
         "model_flag": "--model",
         "prompt_flag": "-p",  # -p/--prompt = headless; positional/-i would go interactive
@@ -243,7 +245,7 @@ if __name__ == "__main__":
     print(f"  Default Claude model: {model}")
 
     fast_model = get_model("gemini", fast=True)
-    assert fast_model == "gemini-flash-latest"
+    assert fast_model == "gemini-2.5-flash"
     print(f"  Fast Gemini model: {fast_model}")
 
     # Test build_command

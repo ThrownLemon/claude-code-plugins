@@ -6,8 +6,8 @@ Spawn a new Gemini CLI agent in a separate terminal window.
 
 | Variable | Value | Description |
 |----------|-------|-------------|
-| DEFAULT_MODEL | gemini-pro-latest | Used when no modifier specified |
-| FAST_MODEL | gemini-flash-latest | Used when "fast" modifier requested |
+| DEFAULT_MODEL | gemini-2.5-pro | Used when no modifier specified |
+| FAST_MODEL | gemini-2.5-flash | Used when "fast" modifier requested |
 
 ## Security Note
 
@@ -29,9 +29,9 @@ opt-in in trusted environments.
 2. Use interactive mode by default (no `-y`, no `-p`)
 3. For an autonomous pane that runs and exits, use `-y -p "<prompt>"` as an explicit opt-in
 4. Select model based on user request:
-   - No modifier specified → DEFAULT_MODEL (gemini-pro-latest)
-   - "fast" requested → FAST_MODEL (gemini-flash-latest)
-   - "heavy" requested → DEFAULT_MODEL (gemini-pro-latest)
+   - No modifier specified → DEFAULT_MODEL (gemini-2.5-pro)
+   - "fast" requested → FAST_MODEL (gemini-2.5-flash)
+   - "heavy" requested → DEFAULT_MODEL (gemini-2.5-pro)
 
 ## Command Format
 
@@ -47,11 +47,11 @@ gemini --model <MODEL> -y -p "<prompt>"
 
 ```bash
 # Interactive REPL (default)
-gemini --model gemini-pro-latest
+gemini --model gemini-2.5-pro
 
 # Interactive REPL, fast model
-gemini --model gemini-flash-latest
+gemini --model gemini-2.5-flash
 
 # Autonomous single-shot (explicit opt-in)
-gemini --model gemini-pro-latest -y -p "analyze this codebase"
+gemini --model gemini-2.5-pro -y -p "analyze this codebase"
 ```

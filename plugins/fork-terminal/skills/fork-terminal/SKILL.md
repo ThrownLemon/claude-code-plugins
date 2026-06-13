@@ -48,7 +48,7 @@ This skill enables forking terminal sessions to new windows using various AI cod
 |------|-----------------|---------------|
 | Claude Code | "fork terminal use claude code..." | opus (bare alias, auto-tracks latest) |
 | Codex CLI | "fork terminal use codex..." | gpt-5.2-codex |
-| Gemini CLI | "fork terminal use gemini..." | gemini-pro-latest |
+| Gemini CLI | "fork terminal use gemini..." | gemini-2.5-pro |
 | Raw CLI | "fork terminal run..." | N/A |
 
 ### Model Modifiers
@@ -101,7 +101,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/fork_terminal.py "claud
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/fork_terminal.py "codex exec -m gpt-5.2-codex"
 
 # Fork with Gemini CLI (interactive REPL)
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/fork_terminal.py "gemini --model gemini-pro-latest"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/fork_terminal.py "gemini --model gemini-2.5-pro"
 
 # Fork with raw CLI
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/fork_terminal.py "npm run dev"

@@ -19,7 +19,7 @@ below include the bypass/yolo flags required for unattended execution — these 
 | CLI | Default Model | Command Pattern (autonomous tournament) |
 |-----|---------------|------------------------------------------|
 | Claude Code | opus | `claude --model {model} --dangerously-skip-permissions -p '{prompt}'` |
-| Gemini CLI | gemini-pro-latest | `gemini --model {model} -y -p '{prompt}'` |
+| Gemini CLI | gemini-2.5-pro | `gemini --model {model} -y -p '{prompt}'` |
 | Codex CLI | gpt-5.2-codex | `codex exec -m {model} --dangerously-bypass-approvals-and-sandbox '{prompt}'` |
 
 ## Execution Steps

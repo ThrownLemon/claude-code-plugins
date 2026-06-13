@@ -58,8 +58,8 @@ except ImportError:
             # Interactive: no -y; Autonomous: add -y -p (headless single-shot)
             # -i is interactive REPL; -p runs a single prompt headlessly (opt-in)
             "command_template": "gemini --model {model} {mode_flag} '{prompt}'",
-            "default_model": "gemini-pro-latest",
-            "fast_model": "gemini-flash-latest",
+            "default_model": "gemini-2.5-pro",
+            "fast_model": "gemini-2.5-flash",
             "interactive_flag": "",
             "autonomous_flag": "-y -p"
         },

@@ -39,8 +39,8 @@ except ImportError:
         },
         "gemini": {
             "command": "gemini",
-            "default_model": "gemini-pro-latest",
-            "fast_model": "gemini-flash-latest",
+            "default_model": "gemini-2.5-pro",
+            "fast_model": "gemini-2.5-flash",
             "env_model": "MULTI_REVIEW_GEMINI_MODEL",
             "prompt_flag": "-p",
             "model_flag": "--model",
