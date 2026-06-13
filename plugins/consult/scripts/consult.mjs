@@ -8,7 +8,7 @@
 //   config  — show provider/key status
 //
 // Usage:
-//   node consult.mjs ask --provider zai [--model glm-4.6] "prompt text"
+//   node consult.mjs ask --provider zai [--model glm-5.2] "prompt text"
 //   echo "prompt" | node consult.mjs ask --provider gemini
 //   node consult.mjs review --provider zai [--base origin/main] [--focus "..."]
 //   node consult.mjs config
@@ -115,6 +115,18 @@ async function runProviderCall({ providerName, modelOverride, system, user, maxT
   });
 }
 
+// Reasoning models stop at finish_reason=length when the output budget runs
+// out, leaving a truncated answer. Surface that on stderr so the truncation
+// is visible without corrupting stdout (the stop hook emits JSON on stdout).
+function warnIfTruncated(result) {
+  if (result?.truncated) {
+    console.error(
+      "[consult] WARNING: response hit the max-tokens limit and was truncated. " +
+        "Re-run with a larger --max-tokens for the full answer.",
+    );
+  }
+}
+
 async function cmdAsk(args) {
   const providerName = args.flags.provider || args.flags.p;
   if (!providerName) throw new Error("--provider is required (e.g. --provider zai)");
@@ -136,6 +148,7 @@ async function cmdAsk(args) {
   });
 
   console.log(result.content.trim());
+  warnIfTruncated(result);
   if (process.env.CONSULT_VERBOSE === "1" && result.usage) {
     console.error(`\n[model=${result.model} usage=${JSON.stringify(result.usage)}]`);
   }
@@ -162,6 +175,7 @@ async function cmdReview(args) {
   });
 
   console.log(result.content.trim());
+  warnIfTruncated(result);
 }
 
 async function cmdStop(args) {
@@ -210,11 +224,20 @@ ${transcriptBlock}${diffBlock}`;
     modelOverride,
     system: null,
     user,
-    maxTokens: 16000,
+    maxTokens: 32000,
   });
 
+  warnIfTruncated(result);
   const text = result.content.trim();
-  const needsFixes = /VERDICT:\s*NEEDS FIXES/i.test(text);
+  // Fail safe, not open: a stop gate is a safety check. If the review was
+  // truncated (finish_reason=length) the verdict line may have been cut off,
+  // so a partial answer must NOT be read as a pass — escalate to needs-fixes.
+  const needsFixes = result.truncated
+    ? !/VERDICT:\s*PASS/i.test(text)
+    : /VERDICT:\s*NEEDS FIXES/i.test(text);
+  if (result.truncated && needsFixes) {
+    console.error("[consult] stop-gate review was truncated before a clear verdict — failing closed.");
+  }
 
   if (isHookInvocation) {
     // Structured decision protocol — Claude Code reads stdout as JSON and

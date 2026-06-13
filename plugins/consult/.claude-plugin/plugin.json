@@ -1,7 +1,7 @@
 {
   "name": "consult",
-  "description": "Third-opinion AI consultation - ask z.ai (GLM-4.6) or Gemini for code reviews, second opinions, and stop-gate analysis. Direct API, no extra CLIs required.",
-  "version": "1.0.0",
+  "description": "Third-opinion AI consultation - ask z.ai (GLM-5.2) or Gemini for code reviews, second opinions, and stop-gate analysis. Direct API, no extra CLIs required.",
+  "version": "1.2.0",
   "author": {
     "name": "ThrownLemon"
   }

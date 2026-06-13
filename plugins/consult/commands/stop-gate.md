@@ -40,3 +40,7 @@ The Stop hook is **opt-in**. To enable it, add this to your project's `.claude/s
 ```
 
 When `VERDICT: NEEDS FIXES` is returned, the script exits 2 and Claude Code surfaces the reviewer's notes back to the model, prompting another turn.
+
+> **`${CLAUDE_PLUGIN_ROOT}` caveat:** that variable is expanded for hooks defined in a plugin's own `hooks/hooks.json`, but it may **not** be substituted inside a user-authored `.claude/settings.json`. If the hook fails to find the script, replace `${CLAUDE_PLUGIN_ROOT}` with the absolute path to the plugin's `scripts/consult.mjs`.
+
+> **Privacy / consent:** the stop gate sends the **tail of your transcript and the current git diff** to a third-party API (z.ai or Google). Only enable it on work you're comfortable sharing with that provider, and avoid it in repos containing secrets or regulated data. Redact sensitive content before enabling, or point `--provider` at a provider whose data policy you accept.

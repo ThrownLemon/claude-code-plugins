@@ -1,6 +1,6 @@
 ---
 name: consult-second-opinion
-description: Use when the user asks for a "second opinion", "third opinion", "what does GLM/Gemini think", or wants another model to weigh in on code, design, or review. Routes to the consult plugin's CLI which calls z.ai (GLM-4.6) or Gemini directly via API.
+description: Use when the user asks for a "second opinion", "third opinion", "what does GLM/Gemini think", or wants another model to weigh in on code, design, or review. Routes to the consult plugin's CLI which calls z.ai (GLM-5.2) or Gemini directly via API.
 triggers:
   - "second opinion"
   - "third opinion"
@@ -16,7 +16,7 @@ triggers:
 
 # Consult — Second Opinion Skill
 
-This skill activates when the user wants another model family to weigh in. The plugin ships a small CLI (`scripts/consult.mjs`) that hits z.ai's GLM-4.6 or Google Gemini directly. No extra CLI binaries needed — just an API key in env.
+This skill activates when the user wants another model family to weigh in. The plugin ships a small CLI (`scripts/consult.mjs`) that hits z.ai's GLM-5.2 or Google Gemini directly. No extra CLI binaries needed — just an API key in env.
 
 ## When to use
 
