@@ -6,8 +6,8 @@
 // which are missing (verify), and which live models the repo doesn't use yet.
 //
 // Usage:
-//   node tools/check-models/check-models.mjs [--provider zai|openai|google]
-//                                            [--json] [--strict] [--root <dir>]
+//   node plugins/model-check/scripts/check-models.mjs [--provider zai|openai|google]
+//                                                     [--json] [--strict] [--root <dir>]
 //
 // Keys (only providers whose key is set are checked):
 //   ZAI_API_KEY / ZHIPU_API_KEY / GLM_API_KEY
@@ -47,7 +47,7 @@ function* walk(dir, root) {
     const rel = path.relative(root, full);
     if (entry.isDirectory()) {
       if (SKIP_DIRS.has(entry.name)) continue;
-      if (rel.startsWith(path.join("tools", "check-models"))) continue; // don't scan ourselves
+      if (rel.startsWith(path.join("plugins", "model-check"))) continue; // don't scan ourselves
       yield* walk(full, root);
     } else if (entry.isFile()) {
       if (/^AUDIT-.*\.md$/.test(entry.name)) continue; // one-off audit prose, not config

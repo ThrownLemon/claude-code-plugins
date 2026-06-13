@@ -19,7 +19,7 @@ jobs:
           node-version: "20"
 
       - name: Run unit tests
-        run: node --test tools/check-models/lib.test.mjs
+        run: node --test plugins/model-check/scripts/lib.test.mjs
 
       - name: Check model currency
         env:
@@ -29,5 +29,5 @@ jobs:
         run: |
           echo '## Model currency check' >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          node tools/check-models/check-models.mjs >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
+          node plugins/model-check/scripts/check-models.mjs >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"

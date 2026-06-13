@@ -63,6 +63,7 @@ Plugins work in different ways:
 | [video-gen](#video-gen) | AI video generation via Google Veo and OpenAI Sora with smart model routing |
 | [audio-feedback](#audio-feedback) | Sound effects and Kokoro-TTS voice announcements for Claude Code events |
 | [ultimate-statusline](#ultimate-statusline) | Configurable statusline with 30+ widgets — model, git, context, cost, rate limits |
+| [model-check](#model-check) | Verify AI model ids in a project against each provider's live /models list; flag stale ids, surface newer ones |
 
 ---
 
@@ -805,6 +806,16 @@ Manage UniFi network devices, clients, and sites via the `unifi` CLI, with a net
 
 ---
 
+### Model Check
+
+Keeps AI model ids from going stale. Scans the current project for every model id, queries each provider's live `/models` endpoint, and reports what's current (`✓`), rolling aliases (`↻`), shortforms (`↳`), ids to verify (`⚠` not listed), and newer models you aren't using (`🆕`).
+
+**Commands**: `/model-check:check-models` (optional `provider` arg: `zai` | `openai` | `gemini`)
+
+**Setup**: only providers with a key are checked — `ZAI_API_KEY` (z.ai), `OPENAI_API_KEY` (gpt-image/sora), `GEMINI_API_KEY`/`GOOGLE_API_KEY` (gemini/veo/imagen). Zero dependencies; also runnable as a script and on a weekly GitHub Action.
+
+---
+
 ## Related Marketplaces
 
 Other Claude Code marketplaces I maintain that are kept separate (different scope, different update cadence):
@@ -909,11 +920,11 @@ Commit, push, and create a PR.
 
 ## Maintenance
 
-AI model ids go stale quickly. [`tools/check-models`](./tools/check-models) discovers every model id used across the repo, queries each provider's live `/models` endpoint, and flags stale ids while surfacing newer ones:
+AI model ids go stale quickly. The [model-check](#model-check) plugin discovers every model id used in a project, queries each provider's live `/models` endpoint, and flags stale ids while surfacing newer ones. Run it from Claude Code with `/model-check:check-models`, or directly:
 
 ```bash
-node tools/check-models/check-models.mjs            # all providers with a key set
-node tools/check-models/check-models.mjs --provider zai --json
+node plugins/model-check/scripts/check-models.mjs            # all providers with a key set
+node plugins/model-check/scripts/check-models.mjs --provider zai --json
 ```
 
 A weekly GitHub Action (`.github/workflows/check-models.yml`) runs it automatically and posts the report to the workflow summary — add `ZAI_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` as repo secrets to enable each provider.

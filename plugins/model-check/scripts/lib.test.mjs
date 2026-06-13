@@ -1,5 +1,5 @@
 // Unit tests for the model-currency checker's pure logic. Zero deps.
-// Run: node --test tools/check-models/lib.test.mjs
+// Run: node --test plugins/model-check/scripts/lib.test.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
