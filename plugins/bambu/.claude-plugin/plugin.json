@@ -1,6 +1,6 @@
 {
   "name": "bambu",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Control Bambu Lab X1Plus 3D printers via the bambu CLI — check status, send prints, manage filament, run diagnostics, and more.",
   "author": {
     "name": "ThrownLemon"

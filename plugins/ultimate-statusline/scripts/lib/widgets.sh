@@ -144,8 +144,18 @@ widget_git_changes() {
 }
 
 # Git worktree name
+# Prefers the CC-supplied .workspace.git_worktree field; falls back to git subprocess
 widget_git_worktree() {
-  local toplevel worktree
+  local input="$1"
+  local worktree
+  # Read from statusline JSON (no subprocess needed when CC provides it)
+  worktree=$(echo "$input" | jq -r '.workspace.git_worktree // empty' 2>/dev/null)
+  if [[ -n "$worktree" ]]; then
+    printf '%s' "$worktree"
+    return
+  fi
+  # Fallback: derive from git rev-parse
+  local toplevel
   toplevel=$(git rev-parse --show-toplevel 2>/dev/null)
   if [[ -n "$toplevel" ]]; then
     worktree=$(basename "$toplevel")
@@ -176,6 +186,7 @@ widget_commits_today() {
 # ============================================================================
 
 # Context percentage with optional progress bar
+# Prefers CC-supplied .context_window.used_percentage; falls back to computing from tokens
 widget_context_percent() {
   local input="$1"
   local config
@@ -183,18 +194,22 @@ widget_context_percent() {
   local theme
   theme=$(load_theme)
 
-  local input_tokens
-  local output_tokens
-  local context_size
-  input_tokens=$(echo "$input" | jq -r '.context_window.total_input_tokens // 0')
-  output_tokens=$(echo "$input" | jq -r '.context_window.total_output_tokens // 0')
-  context_size=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')
-
-  local total=$((input_tokens + output_tokens))
-  # Guard against division by zero
-  local percent=0
-  if (( context_size > 0 )); then
-    percent=$((total * 100 / context_size))
+  # Use the CC-provided used_percentage field when available (no subprocess)
+  local percent
+  percent=$(echo "$input" | jq -r '.context_window.used_percentage // empty' 2>/dev/null)
+  if [[ -z "$percent" ]]; then
+    local input_tokens output_tokens context_size
+    input_tokens=$(echo "$input" | jq -r '.context_window.total_input_tokens // 0')
+    output_tokens=$(echo "$input" | jq -r '.context_window.total_output_tokens // 0')
+    context_size=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')
+    local total=$((input_tokens + output_tokens))
+    percent=0
+    if (( context_size > 0 )); then
+      percent=$((total * 100 / context_size))
+    fi
+  else
+    # Convert float (e.g. 26.5) to integer
+    percent=$(printf '%.0f' "$percent" 2>/dev/null || echo "${percent%%.*}")
   fi
 
   local show_bar
@@ -333,6 +348,7 @@ widget_session_cost() {
 }
 
 # Daily cost (requires ccusage)
+# Uses get_ccusage_data() from cache.sh to avoid spawning ccusage on every render
 widget_daily_cost() {
   local config
   config=$(get_widget_config "daily_cost")
@@ -341,13 +357,14 @@ widget_daily_cost() {
 
   local cost="N/A"
   if command -v ccusage &>/dev/null; then
-    cost=$(ccusage --format json 2>/dev/null | jq -r '.daily // "N/A"' 2>/dev/null) || cost="N/A"
+    cost=$(get_ccusage_data 2>/dev/null | jq -r '.daily // "N/A"' 2>/dev/null) || cost="N/A"
   fi
 
   printf '%s %s' "$icon" "$cost"
 }
 
 # Weekly cost (requires ccusage)
+# Uses get_ccusage_data() from cache.sh to avoid spawning ccusage on every render
 widget_weekly_cost() {
   local config
   config=$(get_widget_config "weekly_cost")
@@ -356,13 +373,14 @@ widget_weekly_cost() {
 
   local cost="N/A"
   if command -v ccusage &>/dev/null; then
-    cost=$(ccusage --format json 2>/dev/null | jq -r '.weekly // "N/A"' 2>/dev/null) || cost="N/A"
+    cost=$(get_ccusage_data 2>/dev/null | jq -r '.weekly // "N/A"' 2>/dev/null) || cost="N/A"
   fi
 
   printf '%s %s' "$icon" "$cost"
 }
 
 # Monthly cost (requires ccusage)
+# Uses get_ccusage_data() from cache.sh to avoid spawning ccusage on every render
 widget_monthly_cost() {
   local config
   config=$(get_widget_config "monthly_cost")
@@ -371,7 +389,7 @@ widget_monthly_cost() {
 
   local cost="N/A"
   if command -v ccusage &>/dev/null; then
-    cost=$(ccusage --format json 2>/dev/null | jq -r '.monthly // "N/A"' 2>/dev/null) || cost="N/A"
+    cost=$(get_ccusage_data 2>/dev/null | jq -r '.monthly // "N/A"' 2>/dev/null) || cost="N/A"
   fi
 
   printf '%s %s' "$icon" "$cost"
@@ -582,7 +600,7 @@ widget_directory() {
     "full")
       # Apply max_segments truncation
       if [[ "$max_segments" -gt 0 ]]; then
-        # Use mapfile to handle paths with spaces correctly
+        # Use IFS-split read -ra (bash 3.2 compatible) to handle paths with spaces
         local -a parts
         local saved_ifs="$IFS"
         IFS='/' read -ra parts <<< "$normalized"
@@ -639,6 +657,7 @@ widget_directory() {
 }
 
 # Claude Code version
+# Uses get_cached_version() from cache.sh (1h TTL) to avoid spawning claude on every render
 widget_version() {
   local config
   config=$(get_widget_config "version")
@@ -646,7 +665,7 @@ widget_version() {
   icon=$(echo "$config" | jq -r '.icon // "v"')
 
   local version
-  version=$(claude --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+') || version="?"
+  version=$(get_cached_version 2>/dev/null) || version="?"
   printf '%s%s' "$icon" "$version"
 }
 
@@ -739,8 +758,11 @@ widget_custom_command() {
   local -a default_whitelist=("date" "uptime" "whoami" "hostname" "pwd" "echo" "basename" "dirname")
 
   # Get user-configured additional commands (if any)
-  local -a user_whitelist
-  mapfile -t user_whitelist < <(echo "$config" | jq -r '.allowed_commands // [] | .[]' 2>/dev/null)
+  # Use while-read instead of mapfile for bash 3.2 compatibility (macOS ships bash 3.2)
+  local -a user_whitelist=()
+  while IFS= read -r _cmd; do
+    [[ -n "$_cmd" ]] && user_whitelist+=("$_cmd")
+  done < <(echo "$config" | jq -r '.allowed_commands // [] | .[]' 2>/dev/null)
 
   # Combine whitelists
   local -a whitelist=("${default_whitelist[@]}" "${user_whitelist[@]}")
@@ -792,6 +814,60 @@ widget_separator() {
 }
 
 # ============================================================================
+# EFFORT / THINKING / RATE-LIMIT WIDGETS  (low-effort — read CC JSON fields)
+# ============================================================================
+
+# Effort level (.effort.level)
+widget_effort_level() {
+  local input="$1"
+  local config
+  config=$(get_widget_config "effort_level")
+  local icon
+  icon=$(echo "$config" | jq -r '.icon // "⚡"')
+
+  local level
+  level=$(echo "$input" | jq -r '.effort.level // empty' 2>/dev/null)
+  if [[ -n "$level" ]]; then
+    printf '%s %s' "$icon" "$level"
+  fi
+}
+
+# Thinking enabled (.thinking.enabled)
+widget_thinking_enabled() {
+  local input="$1"
+  local config
+  config=$(get_widget_config "thinking_enabled")
+  local icon_on icon_off
+  icon_on=$(echo "$config" | jq -r '.icon_on // "🧠"')
+  icon_off=$(echo "$config" | jq -r '.icon_off // ""')
+
+  local enabled
+  enabled=$(echo "$input" | jq -r '.thinking.enabled // empty' 2>/dev/null)
+  if [[ "$enabled" == "true" ]]; then
+    printf '%s' "$icon_on"
+  elif [[ "$enabled" == "false" && -n "$icon_off" ]]; then
+    printf '%s' "$icon_off"
+  fi
+}
+
+# Rate limit usage — 5-hour window (.rate_limits.five_hour.used_percentage)
+widget_rate_limit_percent() {
+  local input="$1"
+  local config
+  config=$(get_widget_config "rate_limit_percent")
+  local icon
+  icon=$(echo "$config" | jq -r '.icon // "🚦"')
+
+  local pct
+  pct=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty' 2>/dev/null)
+  if [[ -n "$pct" ]]; then
+    local int_pct
+    int_pct=$(printf '%.0f' "$pct" 2>/dev/null || echo "${pct%%.*}")
+    printf '%s %s%%' "$icon" "$int_pct"
+  fi
+}
+
+# ============================================================================
 # WIDGET DISPATCHER
 # ============================================================================
 
@@ -812,7 +888,7 @@ render_widget() {
     model_name) widget_model_name "$input" ;;
     git_branch) widget_git_branch "$input" ;;
     git_changes) widget_git_changes "$input" ;;
-    git_worktree) widget_git_worktree "$input" ;;
+    git_worktree) widget_git_worktree "$input" ;;  # input added for CC JSON field
     commits_today) widget_commits_today "$input" ;;
     context_percent) widget_context_percent "$input" ;;
     context_length) widget_context_length "$input" ;;
@@ -840,6 +916,9 @@ render_widget() {
     message_count) widget_message_count "$input" ;;
     custom_text) widget_custom_text "$input" ;;
     custom_command) widget_custom_command "$input" ;;
+    effort_level) widget_effort_level "$input" ;;
+    thinking_enabled) widget_thinking_enabled "$input" ;;
+    rate_limit_percent) widget_rate_limit_percent "$input" ;;
     separator) widget_separator ;;
     *) ;;
   esac

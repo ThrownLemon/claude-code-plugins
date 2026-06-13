@@ -39,7 +39,7 @@ The `cr-reviewer` subagent will:
    - Guide through setup if needed
 
 2. **Run Review**
-   - Execute `coderabbit --prompt-only`
+   - Execute `coderabbit review --agent`
    - Default to `--type all` (uncommitted + committed changes)
    - Auto-detect base branch
 

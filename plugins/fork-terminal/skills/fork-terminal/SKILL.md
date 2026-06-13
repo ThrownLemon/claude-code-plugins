@@ -46,9 +46,9 @@ This skill enables forking terminal sessions to new windows using various AI cod
 
 | Tool | Trigger Pattern | Default Model |
 |------|-----------------|---------------|
-| Claude Code | "fork terminal use claude code..." | opus |
-| Codex CLI | "fork terminal use codex..." | gpt-5.1-codex-max |
-| Gemini CLI | "fork terminal use gemini..." | gemini-3-pro-preview |
+| Claude Code | "fork terminal use claude code..." | opus (bare alias, auto-tracks latest) |
+| Codex CLI | "fork terminal use codex..." | gpt-5.2-codex |
+| Gemini CLI | "fork terminal use gemini..." | gemini-2.5-pro |
 | Raw CLI | "fork terminal run..." | N/A |
 
 ### Model Modifiers
@@ -91,27 +91,31 @@ Match the user's language against these patterns:
 
 ## Example Commands
 
-> **Security Warning**: The `--dangerously-*` flags and `-y` (yolo) mode bypass safety prompts. Only use in trusted environments where you understand the risks of unattended AI agent execution.
+**Default (interactive) — no bypass flags:**
 
 ```bash
-# Fork with Claude Code
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/fork_terminal.py "claude --model opus --dangerously-skip-permissions"
+# Fork with Claude Code (interactive, user reviews each action)
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/fork_terminal.py "claude --model opus"
 
-# Fork with Codex CLI
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/fork_terminal.py "codex --model gpt-5.1-codex-max --dangerously-bypass-approvals-and-sandbox"
+# Fork with Codex CLI (interactive)
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/fork_terminal.py "codex exec -m gpt-5.2-codex"
 
-# Fork with Gemini CLI
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/fork_terminal.py "gemini --model gemini-3-pro-preview -y"
+# Fork with Gemini CLI (interactive REPL)
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/fork_terminal.py "gemini --model gemini-2.5-pro"
 
 # Fork with raw CLI
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/fork-terminal/tools/fork_terminal.py "npm run dev"
 ```
 
+> **Security Warning (opt-in only)**: The `--dangerously-*` flags and `-y -p` (yolo headless) mode bypass safety prompts. Only add them when you explicitly need autonomous/unattended execution in a trusted environment.
+
 ## Platform Support
 
-- **macOS**: Fully supported (AppleScript)
-- **Windows**: Fully supported (cmd.exe)
-- **Linux**: Not yet implemented
+- **macOS**: Fully supported (AppleScript for Warp/Terminal.app; tmux)
+- **Linux**: tmux path supported; window-mode (AppleScript) not available
+- **Windows**: Basic cmd.exe window launch only; tmux and AppleScript paths are macOS/Unix-only
+
+> **Note**: The `coordination.py` lock file path uses `fcntl` (Unix-only) and the terminal-window path uses AppleScript. These features do not work on Windows.
 
 ## Example Triggers
 

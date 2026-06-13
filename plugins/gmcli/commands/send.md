@@ -44,18 +44,30 @@ Send an email directly from the terminal with full support for CC, BCC, and atta
 This command delegates to the `gmail-assistant` subagent which will:
 
 1. **Validate Input**
-   - Check email addresses are valid
-   - Verify attachments exist
-   - Confirm account is authenticated
+   - Verify `to`, `cc`, and `bcc` values match the pattern `[^@\s]+@[^@\s]+\.[^@\s]+` — reject any address that does not match and ask the user to correct it before proceeding.
+   - Reject any address value containing shell metacharacters (`$(`, backticks, `;`, `|`, `&`, `>`, `<`).
+   - Verify attachments exist on disk before sending.
+   - Confirm the sending account is authenticated.
 
 2. **Compose Email**
-   - Format message with provided details
-   - Attach files if specified
+   - Format message with provided details.
+   - Pass `--` before user-supplied positional arguments to prevent flag injection (e.g., `gmcli send -- --to ...`).
+   - Attach files if specified.
 
-3. **Send and Confirm**
-   - Execute send via gmcli
-   - Report success/failure
-   - Show sent message details
+3. **Confirm Before Sending**
+   - **Always show a confirmation prompt** before sending:
+     > About to send:
+     > - To: `<to>`
+     > - Subject: `<subject>`
+     > - Body preview: first 100 chars…
+     > - Attachments: `<files or none>`
+     >
+     > Proceed? (yes / no)
+   - Do not send until the user explicitly confirms.
+
+4. **Send and Report**
+   - Execute send via gmcli.
+   - Report success/failure and show sent message details.
 
 ## Body Content
 

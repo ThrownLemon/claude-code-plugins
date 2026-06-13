@@ -1,0 +1,8 @@
+{
+  "name": "model-check",
+  "description": "Check AI model-id currency - scan a project for model ids and verify them against each provider's live /models endpoint (z.ai, OpenAI, Google). Flags stale ids and surfaces newer models.",
+  "version": "1.0.0",
+  "author": {
+    "name": "ThrownLemon"
+  }
+}

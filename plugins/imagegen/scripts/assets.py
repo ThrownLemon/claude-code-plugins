@@ -370,7 +370,7 @@ def main():
     provider_config = config.get(provider, {})
     model = args.model or provider_config.get("model")
     if not model:
-        model = "gemini-2.5-flash-image" if provider == "google" else "gpt-image-1"
+        model = "gemini-2.5-flash-image" if provider == "google" else "gpt-image-2"
 
     # Setup output directory
     if args.output_dir:

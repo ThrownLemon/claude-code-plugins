@@ -10,6 +10,10 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Ensure this script's directory is on sys.path so sibling modules resolve
+# correctly regardless of the working directory the caller uses.
+sys.path.insert(0, str(Path(__file__).parent))
+
 from aggregator import aggregate_findings
 
 

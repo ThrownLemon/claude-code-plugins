@@ -83,7 +83,7 @@ Veo uses long-running operations with a `done` boolean field:
 - `done: true` - Operation complete (check `response` for video or `error` for failure)
 
 Metadata states: `RUNNING`, `PENDING`
-Result: Video URI in `response.generatedVideos[0].video.uri`
+Result: Video URI in `response.generateVideoResponse.generatedSamples[0].video.uri`
 
 **Sora (OpenAI)**:
 - `queued` - Waiting to start
@@ -97,7 +97,7 @@ Webhook events: `video.completed`, `video.failed`
 
 ## Retrieving Completed Videos
 
-**Veo**: Download URL is in the operation response at `response.generatedVideos[0].video.uri`
+**Veo**: Download URL is in the operation response at `response.generateVideoResponse.generatedSamples[0].video.uri`
 
 **Sora**: After status shows `completed`, call the content endpoint:
 ```

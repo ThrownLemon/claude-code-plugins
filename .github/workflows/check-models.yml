@@ -1,0 +1,33 @@
+name: Model currency check
+
+# Model ids go stale fast. This runs the checker weekly and on demand, writing
+# the report to the workflow summary. It does NOT fail the run on ⚠ findings
+# (an unlisted-but-valid model is normal); it's an FYI for maintainers.
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Mondays 09:00 UTC
+  workflow_dispatch:
+
+jobs:
+  check-models:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run unit tests
+        run: node --test plugins/model-check/scripts/lib.test.mjs
+
+      - name: Check model currency
+        env:
+          ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          echo '## Model currency check' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          node plugins/model-check/scripts/check-models.mjs >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

@@ -4,6 +4,16 @@
 
 set -e
 
+# Sora EOL guard — check before any API call
+_SORA_EOL_DATE="20260924"
+_TODAY=$(date +%Y%m%d)
+if [[ "$_TODAY" -ge "$_SORA_EOL_DATE" ]]; then
+    echo "Error: OpenAI Sora /v1/videos retired 2026-09-24 — use Veo via /video-gen:veo" >&2
+    exit 1
+else
+    echo "Warning: OpenAI Sora /v1/videos will be shut down on 2026-09-24 — plan to switch to /video-gen:veo" >&2
+fi
+
 VIDEO_ID=""
 DOWNLOAD=false
 OUTPUT_PATH=""
@@ -75,8 +85,39 @@ fi
 # API endpoint
 API_BASE="https://api.openai.com/v1"
 
+# Retry-with-backoff helper: 3 attempts, exponential delay (2s, 4s).
+# Branches on the HTTP status code (via curl -w) rather than the JSON body —
+# OpenAI returns .error.code as a string (e.g. "rate_limit_exceeded"), so a
+# numeric test on it is unreliable. Retries on 429, any 5xx, and 000
+# (connection failure); returns the response body for everything else.
+_retryable_status() {
+    case "$1" in
+        429 | 5?? | 000) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+_http_retry() {
+    local _attempt=1 _max=3 _delay=2 _resp _code _body
+    while [ "$_attempt" -le "$_max" ]; do
+        _resp=$(curl -sS --connect-timeout 30 --max-time 60 -w '\n%{http_code}' "$@")
+        _code=$(printf '%s' "$_resp" | tail -n1)
+        _body=$(printf '%s' "$_resp" | sed '$d')
+        if ! _retryable_status "$_code"; then
+            printf '%s' "$_body"
+            return 0
+        fi
+        if [ "$_attempt" -lt "$_max" ]; then
+            echo "Warning: HTTP $_code — retrying in ${_delay}s (attempt $_attempt/$_max)..." >&2
+            sleep "$_delay"
+            _delay=$(( _delay * 2 ))
+        fi
+        _attempt=$(( _attempt + 1 ))
+    done
+    printf '%s' "$_body"
+}
+
 # Get video status
-RESPONSE=$(curl -sS --connect-timeout 30 --max-time 60 -X GET \
+RESPONSE=$(_http_retry -X GET \
     "${API_BASE}/videos/${VIDEO_ID}" \
     -H "Authorization: Bearer ${OPENAI_API_KEY}")
 
@@ -120,7 +161,7 @@ case "$STATUS" in
         echo "Status: COMPLETED" >&2
 
         # Get video content URL from /content endpoint
-        CONTENT_RESPONSE=$(curl -sS --connect-timeout 30 --max-time 60 -X GET \
+        CONTENT_RESPONSE=$(_http_retry -X GET \
             "${API_BASE}/videos/${VIDEO_ID}/content" \
             -H "Authorization: Bearer ${OPENAI_API_KEY}")
 

@@ -1,6 +1,6 @@
 # Consult Plugin
 
-Third-opinion AI consultation for Claude Code. Calls **Z.AI (GLM-4.6)** or **Google Gemini** directly via API for second-opinion answers, code reviews, and optional stop-gate review.
+Third-opinion AI consultation for Claude Code. Calls **Z.AI (GLM-5.2)** or **Google Gemini** directly via API for second-opinion answers, code reviews, and optional stop-gate review.
 
 Think of it as the codex plugin's `/codex:rescue`, except the rescuer is a different model family — GLM or Gemini — and there is no separate CLI to install. Just one env var per provider.
 
@@ -113,11 +113,21 @@ plugins/consult/
 
 Both providers expose an OpenAI-compatible `/chat/completions` endpoint, so a single client handles both. Adding a new provider (Anthropic, OpenAI, Mistral, etc.) is one entry in `providers.mjs`.
 
+### Streaming & timeouts
+
+The client always streams (`stream: true`). Reasoning models emit a long internal `reasoning_content` phase before any visible answer; a non-streaming call holds the socket silent through that phase and used to trip a fixed wall-clock timeout (reported as "timed out / cut off"). Streaming replaces that with an **idle** timeout — reset on every chunk — so a long-but-progressing answer is never killed while a genuinely stalled connection still aborts.
+
+- `CONSULT_TIMEOUT_MS` — max gap allowed *between* chunks (default `180000`). Raise it only if a provider is slow to start streaming.
+- `CONSULT_TOTAL_TIMEOUT_MS` — hard wall-clock ceiling per attempt (default `600000`). Stops a stream that drips one byte at a time forever (the idle timeout alone can't).
+- Transient connection failures (`429`/`5xx` and network blips) are retried up to 2 times with exponential backoff **before** the stream starts. Once content begins arriving the response is not idempotent, so a mid-stream failure surfaces directly.
+- When a response stops at `finish_reason=length`, the answer is truncated; the CLI prints a `WARNING` to **stderr** (stdout stays clean for the stop hook) telling you to re-run with a larger `--max-tokens`.
+- If an undersized budget is fully consumed by reasoning (no visible answer at all), the call fails with an actionable error naming the model's output ceiling (131072 for the glm-5.x series).
+
 ## Provider models
 
 | Provider | Default model | Notes |
 |----------|---------------|-------|
-| `zai`    | `glm-5.1`     | Reasoning model — burns output tokens on internal reasoning, so the plugin defaults to a higher token budget. Other live models on the coding endpoint: `glm-5-turbo`, `glm-5`, `glm-4.7`, `glm-4.6`, `glm-4.5`, `glm-4.5-air`. |
+| `zai`    | `glm-5.2`     | Latest GLM Coding Plan flagship — 1M-token context, 128K max output, chain-of-thought (max thinking) enabled by default. It is a reasoning model: it burns output tokens on internal reasoning before any visible answer, so the plugin uses high token budgets and streams the response (an undersized `--max-tokens` can be fully consumed by reasoning). Other live models on the coding endpoint: `glm-5.1`, `glm-5-turbo`, `glm-5`, `glm-4.7`, `glm-4.6`, `glm-4.5`, `glm-4.5-air`. |
 | `gemini` | `gemini-flash-latest` | Google's stable alias for the current top Flash model — fast, cheap, generous free-tier limits. Override with `--model gemini-pro-latest` when you need the heavier model. |
 
 Endpoints:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # /// script
-# requires-python = ">=3.8"
+# requires-python = ">=3.11"
 # dependencies = ["pyyaml"]
 # ///
 """
@@ -37,7 +37,9 @@ def main() -> None:
     tool_name = input_data.get("tool_name", "")
     tool_input = input_data.get("tool_input", {})
 
-    if tool_name != "Edit":
+    # Edit and MultiEdit both carry a single `file_path`; path protection
+    # applies to both. (The hooks.json wires both matchers here.)
+    if tool_name not in ("Edit", "MultiEdit"):
         sys.exit(0)
 
     file_path = tool_input.get("file_path", "")

@@ -45,7 +45,7 @@ Example `config.json`:
 {
   "controllerUrl": "https://192.168.1.1:8443",
   "username": "admin",
-  "password": "s3cret"
+  "password": "<your-controller-password>"
 }
 ```
 
@@ -53,7 +53,7 @@ Example `config.json`:
 > ```bash
 > chmod 600 ~/.config/unifi-cli/config.json
 > ```
-> Prefer using `UNIFI_API_TOKEN` (a controller-issued API token) over username/password where supported by your controller version. Tokens can be revoked individually without rotating a password used elsewhere.
+> **Prefer `UNIFI_API_TOKEN`** (a controller-issued API token) over a username/password config file. Tokens can be revoked individually without rotating a shared password. If you must store a password, keep it in the environment variable (`UNIFI_PASSWORD`) rather than in the JSON file, and never commit the file to version control.
 
 ## Installation
 

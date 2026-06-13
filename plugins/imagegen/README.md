@@ -116,9 +116,10 @@ pip install google-genai openai Pillow
 | Model | Description |
 |-------|-------------|
 | `gpt-image-2` | State-of-the-art (default, released 2026-04-21). Has built-in "thinking mode" reasoning. Generation can take up to 2 min for complex prompts. |
-| `gpt-image-1.5` | Previous high-quality model |
+| `gpt-image-1.5` | Previous high-quality model; supports edits endpoint |
 | `gpt-image-1` | Previous default; the only GPT-Image variant that currently supports **transparent backgrounds** |
 | `gpt-image-1-mini` | Fast, lower cost |
+| `chatgpt-image-latest` | Rolling-latest alias — always resolves to OpenAI's current best model |
 
 > **Note on transparency**: `gpt-image-2` does not currently support transparent backgrounds (only `opaque` or `auto`). If you need transparency, override with `--model gpt-image-1`. OpenAI is expected to add this to gpt-image-2 in a future update.
 
@@ -149,7 +150,7 @@ Configuration file: `~/.config/claude-imagegen/config.json`
 | `output_dir` | ./generated-images | Output directory |
 | `google.model` | gemini-2.5-flash-image | Default Google model |
 | `google.aspect_ratio` | 1:1 | Default aspect ratio |
-| `openai.model` | gpt-image-1 | Default OpenAI model |
+| `openai.model` | gpt-image-2 | Default OpenAI model |
 | `openai.size` | 1024x1024 | Default size |
 | `openai.quality` | high | Default quality |
 

@@ -79,8 +79,38 @@ fi
 # API endpoint
 API_BASE="https://generativelanguage.googleapis.com/v1beta"
 
+# Retry-with-backoff helper: 3 attempts, exponential delay (2s, 4s).
+# Branches on the HTTP status code (via curl -w) rather than the JSON body, so
+# it is robust across providers regardless of how .error.code is typed.
+# Retries on 429, any 5xx, and 000 (connection failure).
+_retryable_status() {
+    case "$1" in
+        429 | 5?? | 000) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+_http_retry() {
+    local _attempt=1 _max=3 _delay=2 _resp _code _body
+    while [ "$_attempt" -le "$_max" ]; do
+        _resp=$(curl -sS --connect-timeout 30 --max-time 60 -w '\n%{http_code}' "$@")
+        _code=$(printf '%s' "$_resp" | tail -n1)
+        _body=$(printf '%s' "$_resp" | sed '$d')
+        if ! _retryable_status "$_code"; then
+            printf '%s' "$_body"
+            return 0
+        fi
+        if [ "$_attempt" -lt "$_max" ]; then
+            echo "Warning: HTTP $_code — retrying in ${_delay}s (attempt $_attempt/$_max)..." >&2
+            sleep "$_delay"
+            _delay=$(( _delay * 2 ))
+        fi
+        _attempt=$(( _attempt + 1 ))
+    done
+    printf '%s' "$_body"
+}
+
 # Get operation status
-RESPONSE=$(curl -sS --connect-timeout 30 --max-time 60 -X GET \
+RESPONSE=$(_http_retry -X GET \
     "${API_BASE}/${OPERATION_ID}" \
     -H "x-goog-api-key: ${API_KEY}")
 

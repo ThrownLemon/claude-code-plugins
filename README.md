@@ -55,10 +55,15 @@ Plugins work in different ways:
 | [imagegen](#imagegen) | AI image generation with Google Gemini and OpenAI |
 | [ui-ux-pro-max](#uiux-pro-max) | Searchable database of UI/UX design intelligence |
 | [gmcli](#gmail-cli) | Gmail integration for terminal-based email management |
-| [consult](#consult) | Third-opinion AI consultation via z.ai (GLM-4.6) and Gemini — second opinions, reviews, optional stop-gate hook |
+| [consult](#consult) | Third-opinion AI consultation via z.ai (GLM-5.2) and Gemini — second opinions, reviews, optional stop-gate hook |
 | [cloudflare](#cloudflare) | Cloudflare management via the cf CLI — DNS, tunnels, zones, cache purge, zero-trust diagnostics |
 | [bambu](#bambu) | Bambu Lab X1Plus 3D printer control — status, send prints, calibration, filament, diagnostics |
 | [unifi](#unifi) | UniFi network management — sites, clients, devices, port forwards, troubleshooter agent |
+| [multi-ai-review](#multi-ai-review) | Parallel code review across Claude, Gemini, and Codex CLIs with consensus comparison |
+| [video-gen](#video-gen) | AI video generation via Google Veo and OpenAI Sora with smart model routing |
+| [audio-feedback](#audio-feedback) | Sound effects and Kokoro-TTS voice announcements for Claude Code events |
+| [ultimate-statusline](#ultimate-statusline) | Configurable statusline with 30+ widgets — model, git, context, cost, rate limits |
+| [model-check](#model-check) | Verify AI model ids in a project against each provider's live /models list; flag stale ids, surface newer ones |
 
 ---
 
@@ -132,7 +137,7 @@ AI-powered code review integration using the CodeRabbit CLI.
 Handles the full review workflow:
 1. Checks prerequisites (CLI installed, authenticated)
 2. Auto-detects base branch if not specified
-3. Runs `coderabbit --prompt-only` with specified options
+3. Runs `coderabbit review --agent` with specified options
 4. Categorizes findings by severity (Critical, Major, Minor, Trivial)
 5. Interactive fix loop - apply fixes and re-run review to verify
 6. Handles rate limiting gracefully
@@ -259,7 +264,7 @@ When spawning worktree workers, you'll be prompted to choose:
 |------|-----------------|---------------|------------|
 | Claude Code | "use claude code..." | opus | sonnet |
 | Codex CLI | "use codex..." | gpt-5.2-codex | gpt-5.1-codex-mini |
-| Gemini CLI | "use gemini..." | gemini-3-pro-preview | gemini-3-flash-preview |
+| Gemini CLI | "use gemini..." | gemini-pro-latest | gemini-flash-latest |
 | Raw CLI | "run..." | N/A | N/A |
 
 **Model Modifiers:**
@@ -394,7 +399,7 @@ export OPENAI_API_KEY=your_key
 | Feature | Google Gemini | OpenAI GPT-Image |
 |---------|---------------|------------------|
 | **Best For** | Style variety, character consistency | Text in images, precise edits |
-| **Models** | gemini-2.5-flash-image, gemini-3-pro-image-preview | gpt-image-1.5, gpt-image-1-mini |
+| **Models** | gemini-2.5-flash-image, gemini-3-pro-image-preview | gpt-image-2 (default), gpt-image-1.5 (edits), chatgpt-image-latest |
 | **Transparent BG** | Limited | Supported |
 | **Multi-turn iteration** | Strong | Limited |
 
@@ -673,7 +678,7 @@ Handles all email operations:
 
 ### Consult
 
-**Description**: Third-opinion AI consultation. Calls **Z.AI (GLM-4.6)** or **Google Gemini** directly via API for second opinions, code reviews, and an optional stop-gate review hook.
+**Description**: Third-opinion AI consultation. Calls **Z.AI (GLM-5.2)** or **Google Gemini** directly via API for second opinions, code reviews, and an optional stop-gate review hook.
 
 Use it the same way you'd use the codex plugin's `/codex:rescue` — except the rescuer is a different model family, and there's nothing to install beyond an API key. No external CLI binary required (uses Node 18+ `fetch`).
 
@@ -720,6 +725,94 @@ export GEMINI_API_KEY="<your-gemini-key>"  # https://ai.google.dev
 When the gate returns `NEEDS FIXES`, the script exits 2 and Claude Code surfaces the reviewer's notes back to the model.
 
 Both providers share an OpenAI-compatible client, so adding more (Anthropic, Mistral, etc.) is a single entry in `scripts/lib/providers.mjs`.
+
+---
+
+### Multi-AI Review
+
+Run the same code review in parallel across the Claude, Gemini, and Codex CLIs, then compare findings for consensus. Requires the relevant CLIs installed and on `PATH`.
+
+**Commands**: `/multi-ai-review:scan`, `/multi-ai-review:report`, `/multi-ai-review:status`, `/multi-ai-review:config`
+**Subagents**: `review-coordinator`, `report-generator`
+
+Defaults: Claude `opus`, Gemini `gemini-pro-latest`, Codex `gpt-5.2-codex` (run via `codex exec --sandbox read-only`). Override with `MULTI_REVIEW_CLAUDE_MODEL` / `MULTI_REVIEW_GEMINI_MODEL` / `MULTI_REVIEW_CODEX_MODEL`; pick CLIs with `MULTI_REVIEW_CLIS`. Codex sandbox bypass is opt-in via `MULTI_REVIEW_CODEX_UNSAFE=1`.
+
+---
+
+### Video Gen
+
+AI video generation with smart routing between **Google Veo** and **OpenAI Sora**.
+
+**Commands**: `/video-gen:generate` (auto-routes), `/video-gen:veo`, `/video-gen:sora`, `/video-gen:status`
+**Subagents**: `video-generator`
+
+**Setup**: `GOOGLE_API_KEY` / `GEMINI_API_KEY` for Veo, `OPENAI_API_KEY` for Sora.
+
+> ⚠️ The OpenAI Sora `/v1/videos` API retires **2026-09-24**; after that date the Sora path errors out at runtime and Veo is the supported route.
+
+---
+
+### Audio Feedback
+
+Sound effects and spoken announcements for Claude Code events (session start/end, tool completion, subagent finish) via a local **Kokoro TTS** server.
+
+**Commands**: `/audio-feedback:config`, `/audio-feedback:test`
+**Hooks**: `SessionStart`, `SessionEnd`, `UserPromptSubmit`, `PostToolUse`, `SubagentStop` (all fire-and-forget).
+
+**Setup**: point `KOKORO_TTS_URL` at a running [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI) server (v0.5.0 changed voice/model IDs — see `/audio-feedback:config`).
+
+---
+
+### Ultimate Statusline
+
+A configurable Claude Code statusline with 30+ widgets — model, git status, context usage, session cost, burn rate, rate limits, MCP status, and more, with themes.
+
+**Commands**: install/configure the statusline and preview widgets; the `statusline-setup` skill wires it into `settings.json`.
+
+> The installer backs up `~/.claude/settings.json` before modifying `statusLine`. The optional custom-command widget executes config-supplied commands and is **disabled by default** — enable only with trusted config.
+
+---
+
+### Cloudflare
+
+Manage Cloudflare via the `cf` CLI — DNS, tunnels, zones, cache purge, and zero-trust diagnostics. (Uses a private CLI.)
+
+**Commands**: `/cloudflare:setup`, `/cloudflare:dns`, `/cloudflare:zones`, `/cloudflare:purge`, `/cloudflare:tunnel`, `/cloudflare:diagnose`
+**Subagents**: `cf-diagnostician`
+
+**Setup**: a scoped **API Token** (`CLOUDFLARE_API_TOKEN`) is recommended over the legacy Global API Key (`CF_API_KEY` + `CF_API_EMAIL`); `CF_ACCOUNT_ID` is optional for zone-scoped ops.
+
+---
+
+### Bambu
+
+Control Bambu Lab X1Plus 3D printers via the `bambu` CLI — status, prints, calibration, filament, and diagnostics with confirmations on destructive actions. (Uses a private CLI.)
+
+**Commands**: `/bambu:status`, `/bambu:print`, `/bambu:control`, `/bambu:calibrate`, `/bambu:doctor`
+**Subagents**: `bambu-doctor`
+
+> Credential note: prefer SSH key auth over `sshpass` (which exposes the printer password via process args).
+
+---
+
+### UniFi
+
+Manage UniFi network devices, clients, and sites via the `unifi` CLI, with a network-awareness skill and troubleshooter agent. (Uses a private CLI.)
+
+**Commands**: `/unifi:sites`, `/unifi:devices`, `/unifi:clients`
+**Subagents**: `unifi-troubleshooter`
+
+**Setup**: `UNIFI_CONTROLLER_URL` plus `UNIFI_API_TOKEN` (preferred) or `UNIFI_USERNAME`/`UNIFI_PASSWORD`; `UNIFI_SITE` to target a non-default site.
+
+---
+
+### Model Check
+
+Keeps AI model ids from going stale. Scans the current project for every model id, queries each provider's live `/models` endpoint, and reports what's current (`✓`), rolling aliases (`↻`), shortforms (`↳`), ids to verify (`⚠` not listed), and newer models you aren't using (`🆕`).
+
+**Commands**: `/model-check:check-models` (optional `provider` arg: `zai` | `openai` | `gemini`)
+
+**Setup**: only providers with a key are checked — `ZAI_API_KEY` (z.ai), `OPENAI_API_KEY` (gpt-image/sora), `GEMINI_API_KEY`/`GOOGLE_API_KEY` (gemini/veo/imagen). Zero dependencies; also runnable as a script and on a weekly GitHub Action.
 
 ---
 
@@ -822,6 +915,19 @@ Update `.claude-plugin/marketplace.json`:
 ### 5. Submit
 
 Commit, push, and create a PR.
+
+---
+
+## Maintenance
+
+AI model ids go stale quickly. The [model-check](#model-check) plugin discovers every model id used in a project, queries each provider's live `/models` endpoint, and flags stale ids while surfacing newer ones. Run it from Claude Code with `/model-check:check-models`, or directly:
+
+```bash
+node plugins/model-check/scripts/check-models.mjs            # all providers with a key set
+node plugins/model-check/scripts/check-models.mjs --provider zai --json
+```
+
+A weekly GitHub Action (`.github/workflows/check-models.yml`) runs it automatically and posts the report to the workflow summary — add `ZAI_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` as repo secrets to enable each provider.
 
 ---
 

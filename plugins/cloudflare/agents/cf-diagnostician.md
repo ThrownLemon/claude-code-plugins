@@ -22,9 +22,9 @@ If not found, instruct the user to install the cf CLI from github.com/ThrownLemo
 Confirm the credentials file exists without printing its contents (it holds API keys):
 ```bash
 [ -f ~/.cloudflare/.env ] && echo "credentials file present" || echo "missing ~/.cloudflare/.env"
-grep -c '^CF_API_KEY=' ~/.cloudflare/.env 2>/dev/null || true
-grep -c '^CF_API_EMAIL=' ~/.cloudflare/.env 2>/dev/null || true
-grep -c '^CF_ACCOUNT_ID=' ~/.cloudflare/.env 2>/dev/null || true
+for k in CLOUDFLARE_API_TOKEN CF_API_KEY CF_API_EMAIL CF_ACCOUNT_ID; do
+  grep -c "^${k}=" ~/.cloudflare/.env 2>/dev/null || true
+done
 ```
 
 Test API connectivity (does not echo secrets):
@@ -33,6 +33,8 @@ cf user info --json
 ```
 
 If the file is missing, the required variables are absent, or the API call fails, guide the user to configure credentials — but **never** cat or print the .env file itself.
+
+**Recommended credential path:** Use a scoped API Token (`CLOUDFLARE_API_TOKEN`) created at dash.cloudflare.com → My Profile → API Tokens. Scoped tokens grant only the permissions needed and can be revoked individually. The legacy Global API Key (`CF_API_KEY` + `CF_API_EMAIL`) grants full account access — steer users away from it for new setups. `CF_ACCOUNT_ID` is optional; only needed for account-level operations.
 
 ### 3. Gather Context Based on Problem Type
 

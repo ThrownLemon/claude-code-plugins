@@ -104,6 +104,7 @@ API keys are read from environment variables (not stored in config):
 
 ### OpenAI Models
 - `gpt-image-2` - State-of-the-art (default; no transparency yet)
-- `gpt-image-1.5` - Previous high-quality
-- `gpt-image-1` - Previous default; supports transparent backgrounds
+- `gpt-image-1.5` - Previous high-quality; supports edits endpoint
+- `gpt-image-1` - Previous default; supports transparent backgrounds and edits
 - `gpt-image-1-mini` - Fast, lower cost
+- `chatgpt-image-latest` - Rolling-latest alias (always points to current best model)

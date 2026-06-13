@@ -32,29 +32,37 @@ CLI_CONFIGS = {
     },
     "gemini": {
         "command": "gemini",
-        "default_model": "gemini-3-pro-preview",
-        "fast_model": "gemini-3-flash-preview",
+        # Concrete GA ids: the gemini CLI rejects rolling "-latest" aliases with
+        # ModelNotFoundError (those only work on the OpenAI-compatible API, which
+        # is what the consult plugin uses). Bump these when a newer GA id ships.
+        "default_model": "gemini-2.5-pro",
+        "fast_model": "gemini-2.5-flash",
         "env_model": "MULTI_REVIEW_GEMINI_MODEL",
         "model_flag": "--model",
-        "prompt_flag": None,  # Gemini takes prompt positionally after --
+        "prompt_flag": "-p",  # -p/--prompt = headless; positional/-i would go interactive
         "auto_flags": ["-y"],
         "interactive_template": "{command} --model {model} -y -i '{prompt}'",
-        "autonomous_template": "{command} --model {model} -y '{prompt}'",
-        "review_template": "{command} --model {model} -y '{prompt}'",
+        "autonomous_template": "{command} --model {model} -y -p '{prompt}'",
+        "review_template": "{command} --model {model} -y -p '{prompt}'",
         "install_cmd": "npm install -g @google/gemini-cli",
         "check_cmd": "which gemini",
     },
     "codex": {
         "command": "codex",
+        # codex 0.139+: `exec` is the non-interactive subcommand, the prompt is
+        # POSITIONAL (no -p), -m sets the model, and --sandbox selects the
+        # sandbox. `--full-auto` was removed. Review defaults to read-only.
+        "subcommand": "exec",
         "default_model": "gpt-5.2-codex",
         "fast_model": "gpt-5.1-codex-mini",
         "env_model": "MULTI_REVIEW_CODEX_MODEL",
-        "model_flag": "--model",
-        "prompt_flag": None,  # Codex takes prompt positionally
-        "auto_flags": ["--full-auto"],
-        "interactive_template": "{command} --model {model} --dangerously-bypass-approvals-and-sandbox '{prompt}'",
-        "autonomous_template": "{command} --model {model} --dangerously-bypass-approvals-and-sandbox '{prompt}'",
-        "review_template": "{command} --model {model} --full-auto '{prompt}'",
+        "model_flag": "-m",
+        "prompt_flag": None,  # Codex exec takes prompt positionally
+        "auto_flags": ["--sandbox", "read-only"],
+        # Bypass (unsandboxed) is reserved for explicitly autonomous, unattended runs.
+        "interactive_template": "{command} exec -m {model} '{prompt}'",
+        "autonomous_template": "{command} exec -m {model} --dangerously-bypass-approvals-and-sandbox '{prompt}'",
+        "review_template": "{command} exec -m {model} --sandbox read-only '{prompt}'",
         "install_cmd": "npm install -g @openai/codex",
         "check_cmd": "which codex",
     }
@@ -159,6 +167,10 @@ def build_command_list(
     model = model or get_model(cli)
     cmd = [config["command"]]
 
+    # Subcommand (e.g. codex `exec`) must come first, before any flags.
+    if config.get("subcommand"):
+        cmd.append(config["subcommand"])
+
     # Add model
     if config["model_flag"]:
         cmd.extend([config["model_flag"], model])
@@ -233,7 +245,7 @@ if __name__ == "__main__":
     print(f"  Default Claude model: {model}")
 
     fast_model = get_model("gemini", fast=True)
-    assert fast_model == "gemini-3-flash-preview"
+    assert fast_model == "gemini-2.5-flash"
     print(f"  Fast Gemini model: {fast_model}")
 
     # Test build_command

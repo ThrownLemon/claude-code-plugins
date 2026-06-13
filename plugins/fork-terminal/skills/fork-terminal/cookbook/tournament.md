@@ -12,11 +12,15 @@ Tournament mode:
 
 ## Supported CLIs
 
-| CLI | Default Model | Command Pattern |
-|-----|---------------|-----------------|
+Tournament mode runs workers autonomously (they complete and exit).  The commands
+below include the bypass/yolo flags required for unattended execution — these are
+**explicit opt-ins** for tournament context only, not the default for interactive use.
+
+| CLI | Default Model | Command Pattern (autonomous tournament) |
+|-----|---------------|------------------------------------------|
 | Claude Code | opus | `claude --model {model} --dangerously-skip-permissions -p '{prompt}'` |
-| Gemini CLI | gemini-3-pro-preview | `gemini --model {model} -y -i '{prompt}'` |
-| Codex CLI | gpt-5.2-codex | `codex --model {model} --dangerously-bypass-approvals-and-sandbox '{prompt}'` |
+| Gemini CLI | gemini-2.5-pro | `gemini --model {model} -y -p '{prompt}'` |
+| Codex CLI | gpt-5.2-codex | `codex exec -m {model} --dangerously-bypass-approvals-and-sandbox '{prompt}'` |
 
 ## Execution Steps
 

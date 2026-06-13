@@ -4,6 +4,16 @@
 
 set -e
 
+# Sora EOL guard — check before any API call
+_SORA_EOL_DATE="20260924"
+_TODAY=$(date +%Y%m%d)
+if [[ "$_TODAY" -ge "$_SORA_EOL_DATE" ]]; then
+    echo "Error: OpenAI Sora /v1/videos retired 2026-09-24 — use Veo via /video-gen:veo" >&2
+    exit 1
+else
+    echo "Warning: OpenAI Sora /v1/videos will be shut down on 2026-09-24 — plan to switch to /video-gen:veo" >&2
+fi
+
 # Default values
 PROMPT=""
 DURATION=8
@@ -21,7 +31,7 @@ Required:
 
 Options:
   --duration NUM     Duration in seconds: 4, 8, or 12 (default: 8)
-  --aspect RATIO     Aspect ratio: 16:9, 9:16, or 1:1 (default: 16:9)
+  --aspect RATIO     Aspect ratio: 16:9 or 9:16 (default: 16:9) — 1:1 unsupported by API
   --model MODEL      Model: sora-2 or sora-2-pro (default: sora-2)
   --image PATH       Reference image (file path or URL)
   --help             Show this help message
@@ -151,12 +161,17 @@ esac
 
 # Map aspect ratio to Sora-supported size dimensions
 # Supported sizes: 720x1280, 1280x720, 1024x1792, 1792x1024
+# Note: 1:1 (square) is NOT supported by the Sora API
 case "$ASPECT" in
     16:9) SIZE="1280x720" ;;
     9:16) SIZE="720x1280" ;;
-    1:1)  SIZE="1280x720" ;; # 1:1 not supported, use landscape
+    1:1)
+        echo "Error: --aspect 1:1 (square) is not supported by the Sora API." >&2
+        echo "Supported ratios: 16:9 (1280x720), 9:16 (720x1280), 16:9-hd (1792x1024), 9:16-hd (1024x1792)" >&2
+        exit 1
+        ;;
     *)
-        echo "Error: --aspect must be 16:9, 9:16, or 1:1 (got: $ASPECT)" >&2
+        echo "Error: --aspect must be 16:9 or 9:16 (got: $ASPECT)" >&2
         exit 1
         ;;
 esac

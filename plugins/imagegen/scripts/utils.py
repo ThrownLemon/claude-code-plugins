@@ -156,7 +156,11 @@ def estimate_cost(provider: str, model: str, num_images: int = 1) -> str:
         "openai": {
             "gpt-image-1-mini": 0.02,
             "gpt-image-1": 0.04,
-            "gpt-image-1.5": 0.08
+            "gpt-image-1.5": 0.08,
+            # TODO: verify gpt-image-2 pricing once OpenAI publishes final rates;
+            # mirroring gpt-image-1 tiers as a placeholder.
+            "gpt-image-2": 0.04,
+            "chatgpt-image-latest": 0.04,
         }
     }
 

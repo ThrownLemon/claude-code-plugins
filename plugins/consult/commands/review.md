@@ -1,5 +1,5 @@
 ---
-description: Get a third-opinion code review of the current git diff from z.ai (GLM-4.6) or Gemini. Mirrors the codex plugin's review pattern but uses a different model family.
+description: Get a third-opinion code review of the current git diff from z.ai (GLM-5.2) or Gemini. Mirrors the codex plugin's review pattern but uses a different model family.
 arguments:
   - name: provider
     description: "Provider: zai or gemini (default: zai)"

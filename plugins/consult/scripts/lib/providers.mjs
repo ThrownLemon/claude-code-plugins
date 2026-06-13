@@ -7,11 +7,25 @@ export const PROVIDERS = {
     label: "Z.AI (GLM)",
     url: "https://api.z.ai/api/coding/paas/v4/chat/completions",
     keyEnv: ["ZAI_API_KEY", "ZHIPU_API_KEY", "GLM_API_KEY"],
-    defaultModel: "glm-5.1",
-    // Current model list (live from /v4/models on 2026-05-16). glm-5.x are
-    // reasoning models — they spend output tokens on internal reasoning
-    // before producing visible content, so prefer higher max-tokens budgets.
-    models: ["glm-5.1", "glm-5-turbo", "glm-5", "glm-4.7", "glm-4.6", "glm-4.5", "glm-4.5-air"],
+    defaultModel: "glm-5.2",
+    // glm-5.2 is the latest GLM Coding Plan flagship (2026-06-13, per
+    // https://docs.z.ai/devpack/latest-model). It is served by the coding
+    // endpoint below even though /models still lags (lists up to glm-5.1).
+    // glm-5.x are reasoning models — they spend output tokens on internal
+    // reasoning_content BEFORE producing visible content, so a small
+    // max-tokens budget can be fully consumed by reasoning and yield empty
+    // or truncated content. Always prefer high max-tokens budgets, and the
+    // streaming client surfaces finish_reason=length truncation.
+    models: ["glm-5.2", "glm-5.1", "glm-5-turbo", "glm-5", "glm-4.7", "glm-4.6", "glm-4.5", "glm-4.5-air"],
+    // glm-5.x series: 1M-token context window, 128K (131072) max output.
+    maxOutputTokens: 131072,
+    // Enable the chain of thought for best results (max thinking). The raw
+    // chat API exposes only thinking.type enabled|disabled — there is no
+    // numeric reasoning budget (the /effort intensity mapping is a Claude
+    // Code coding-plan feature, not available on the direct API). thinking
+    // defaults to enabled, but we send it explicitly so a future default
+    // flip cannot silently disable reasoning.
+    extraBody: { thinking: { type: "enabled" } },
     docsUrl: "https://docs.z.ai",
   },
   gemini: {

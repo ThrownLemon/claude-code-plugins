@@ -42,28 +42,34 @@ except ImportError:
                 .replace("\n", "\\n")
                 .replace("\t", "\\t"))
 
-    # Fallback CLI configs
+    # Fallback CLI configs.
+    # Default (interactive) mode does NOT include bypass/yolo flags — those are
+    # opt-in via the autonomous path only.
     CLI_CONFIGS = {
         "claude": {
-            "command_template": "claude --model {model} --dangerously-skip-permissions {mode_flag} '{prompt}'",
-            "default_model": "opus-4-5",
-            "fast_model": "sonnet-4-5",
+            # Interactive: no bypass; Autonomous: add --dangerously-skip-permissions -p
+            "command_template": "claude --model {model} {mode_flag} '{prompt}'",
+            "default_model": "opus",      # bare alias auto-tracks latest Claude opus
+            "fast_model": "sonnet",       # bare alias auto-tracks latest Claude sonnet
             "interactive_flag": "",
-            "autonomous_flag": "-p"
+            "autonomous_flag": "--dangerously-skip-permissions -p"
         },
         "gemini": {
-            "command_template": "gemini --model {model} -y -i '{prompt}'",
-            "default_model": "gemini-3-pro-preview",
-            "fast_model": "gemini-3-flash-preview",
+            # Interactive: no -y; Autonomous: add -y -p (headless single-shot)
+            # -i is interactive REPL; -p runs a single prompt headlessly (opt-in)
+            "command_template": "gemini --model {model} {mode_flag} '{prompt}'",
+            "default_model": "gemini-2.5-pro",
+            "fast_model": "gemini-2.5-flash",
             "interactive_flag": "",
-            "autonomous_flag": ""
+            "autonomous_flag": "-y -p"
         },
         "codex": {
-            "command_template": "codex --model {model} --dangerously-bypass-approvals-and-sandbox '{prompt}'",
+            # Interactive: no sandbox bypass; Autonomous: add bypass flag (opt-in)
+            "command_template": "codex exec -m {model} {mode_flag} '{prompt}'",
             "default_model": "gpt-5.2-codex",
             "fast_model": "gpt-5.1-codex-mini",
             "interactive_flag": "",
-            "autonomous_flag": ""
+            "autonomous_flag": "--dangerously-bypass-approvals-and-sandbox"
         }
     }
 
@@ -323,11 +329,12 @@ def build_claude_command(
     safe_model = shlex.quote(model)
 
     if mode == "autonomous":
-        # Use -p flag to run prompt and exit when done
+        # Autonomous: runs and exits.  --dangerously-skip-permissions is an explicit
+        # opt-in for unattended execution; keep it only in this branch.
         return f"claude --model {safe_model} --dangerously-skip-permissions -p '{safe_prompt}'"
     else:
-        # Interactive mode: pass prompt as argument (without -p) to start interactive with initial message
-        return f"claude --model {safe_model} --dangerously-skip-permissions '{safe_prompt}'"
+        # Interactive mode: no bypass flags — user reviews each action.
+        return f"claude --model {safe_model} '{safe_prompt}'"
 
 
 def build_cli_command(
@@ -365,8 +372,14 @@ def build_cli_command(
     # Escape the prompt for shell (single quote escape for single-quoted strings)
     safe_prompt = prompt.replace("'", "'\\''")
 
-    # Escape the model name to prevent shell injection
-    safe_model = shlex.quote(model).strip("'")  # Remove quotes since template adds them
+    # Validate the model name against an allowlist pattern to prevent shell injection.
+    # shlex.quote cannot be used here because the command_template embeds {model}
+    # without surrounding quotes, and stripping shlex.quote's quotes re-introduces
+    # injection risk.  A strict allowlist is the correct guard.
+    import re
+    if not re.match(r'^[A-Za-z0-9._-]+$', model):
+        raise ValueError(f"Invalid model name '{model}': only alphanumeric, dot, dash, and underscore are allowed")
+    safe_model = model
 
     # Get mode flag (these are trusted values from config)
     mode_flag = config["autonomous_flag"] if mode == "autonomous" else config["interactive_flag"]

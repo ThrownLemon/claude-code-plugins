@@ -1,6 +1,6 @@
 {
   "name": "cloudflare",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Cloudflare management via the cf CLI — DNS, tunnels, zones, cache purge, zero-trust diagnostics. Auto-triggered skills + slash commands + diagnostician agent.",
   "author": { "name": "ThrownLemon" }
 }
