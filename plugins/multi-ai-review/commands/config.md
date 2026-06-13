@@ -13,7 +13,7 @@ View and configure plugin settings for multi-AI code review.
 | Setting | Environment Variable | Default | Description |
 |---------|---------------------|---------|-------------|
 | Claude model | `MULTI_REVIEW_CLAUDE_MODEL` | `opus` | Claude Code model to use |
-| Gemini model | `MULTI_REVIEW_GEMINI_MODEL` | `gemini-3-pro-preview` | Gemini CLI model |
+| Gemini model | `MULTI_REVIEW_GEMINI_MODEL` | `gemini-pro-latest` | Gemini CLI model |
 | Codex model | `MULTI_REVIEW_CODEX_MODEL` | `gpt-5.2-codex` | Codex CLI model |
 
 ### Review Settings

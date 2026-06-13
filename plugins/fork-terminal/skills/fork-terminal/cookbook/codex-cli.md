@@ -11,13 +11,17 @@ Spawn a new Codex CLI agent in a separate terminal window.
 
 ## Security Note
 
-The `--full-auto` flag enables low-friction sandboxed automatic execution. For fully autonomous (dangerous) mode, use `--dangerously-bypass-approvals-and-sandbox` which skips all confirmation prompts and sandboxing. Only use in trusted environments.
+**Default mode is interactive** — Codex will prompt for approval before each action.
+`--dangerously-bypass-approvals-and-sandbox` skips all confirmation prompts and
+sandboxing. Only use as an explicit opt-in in trusted environments.
+
+Note: `--full-auto` was removed in Codex 0.139. Use `codex exec` instead.
 
 ## Instructions
 
 1. Before executing, run `codex --help` to understand available options
-2. Run in interactive mode (default)
-3. Use `--full-auto` for sandboxed automatic execution
+2. Run in interactive mode by default (`codex exec -m <MODEL> "<prompt>"`)
+3. For autonomous execution, add `--dangerously-bypass-approvals-and-sandbox` as an explicit opt-in
 4. Select model based on user request:
    - No modifier specified → DEFAULT_MODEL (gpt-5.2-codex)
    - "fast" requested → FAST_MODEL (gpt-5.1-codex-mini)
@@ -26,18 +30,19 @@ The `--full-auto` flag enables low-friction sandboxed automatic execution. For f
 ## Command Format
 
 ```bash
-codex --model <MODEL> --full-auto "<prompt>"
+# Interactive (default — Codex prompts before each action)
+codex exec -m <MODEL> "<prompt>"
+
+# Autonomous opt-in (no prompts, no sandbox — use only in trusted environments)
+codex exec -m <MODEL> --dangerously-bypass-approvals-and-sandbox "<prompt>"
 ```
 
 ## Examples
 
 ```bash
-# Interactive mode with prompt
-codex "analyze this codebase"
+# Interactive mode with prompt (default)
+codex exec -m gpt-5.2-codex "analyze this codebase"
 
-# Full auto mode (sandboxed)
-codex --full-auto "refactor the auth module"
-
-# Dangerous mode (no sandbox, no prompts)
-codex --dangerously-bypass-approvals-and-sandbox "fix all tests"
+# Autonomous mode (explicit opt-in — dangerous)
+codex exec -m gpt-5.2-codex --dangerously-bypass-approvals-and-sandbox "fix all tests"
 ```

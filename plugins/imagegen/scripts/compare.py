@@ -34,7 +34,7 @@ def main():
     parser.add_argument("--prompt", "-p", required=True, help="Image prompt")
     parser.add_argument("--google-model", default="gemini-2.5-flash-image",
                         help="Google model")
-    parser.add_argument("--openai-model", default="gpt-image-1",
+    parser.add_argument("--openai-model", default="gpt-image-2",
                         help="OpenAI model")
     parser.add_argument("--output-dir", "-o", help="Output directory")
     parser.add_argument("--size", "-s", default="1:1", help="Size/aspect ratio")

@@ -135,13 +135,21 @@ export CODERABBIT_HINT_FREQUENCY=0
 export CODERABBIT_HINT_FREQUENCY=1
 ```
 
+### MCP Server Token
+
+The `.mcp.json` file passes `${GITHUB_PAT}` from your environment to the MCP server at runtime. This file must **not** be committed with a real token value — the placeholder `${GITHUB_PAT}` is intentional. Set the variable in your shell before starting Claude Code:
+
+```bash
+export GITHUB_PAT=ghp_yourtoken
+```
+
 ## Features
 
 ### Review Loop Workflow
 
 The local review runs in an isolated subagent context:
 
-1. Run `coderabbit --prompt-only` to get AI-optimized output
+1. Run `coderabbit review --agent` to get structured agent-readable output
 2. Parse and categorize issues by severity
 3. Present summary with actionable items
 4. On request, apply fixes and re-run review

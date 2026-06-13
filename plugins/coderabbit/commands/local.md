@@ -34,7 +34,7 @@ This command delegates to the `cr-reviewer` subagent which will:
    - Guide through setup if needed
 
 2. **Run Code Review**
-   - Execute `coderabbit --prompt-only` with specified options
+   - Execute `coderabbit review --agent` with specified options
    - Parse and categorize findings by severity
 
 3. **Present Results**

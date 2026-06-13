@@ -43,7 +43,7 @@ Follow these steps in order. At each step, explain what you are doing and why.
 
    ```bash
    ls -la ~/.config/unifi-cli/config.json 2>/dev/null || echo "(no config file)"
-   for k in UNIFI_HOST UNIFI_USERNAME UNIFI_PASSWORD UNIFI_API_TOKEN UNIFI_SITE; do
+   for k in UNIFI_CONTROLLER_URL UNIFI_USERNAME UNIFI_PASSWORD UNIFI_API_TOKEN UNIFI_SITE; do
      if [ -n "${!k}" ]; then echo "$k: set"; else echo "$k: unset"; fi
    done
    ```

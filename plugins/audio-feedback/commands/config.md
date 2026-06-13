@@ -72,15 +72,25 @@ Place custom sound files in the plugin's `sounds/` directory:
 
 The plugin checks for `.wav` first, then `.aiff`/`.aif`. If custom sounds aren't present, system sounds are used as fallback (macOS only).
 
+## Kokoro TTS Version Note
+
+This plugin is tested against **Kokoro TTS v0.4.x**. Kokoro v0.5.0 changed
+voice and model identifiers — if you upgrade to v0.5.0+ and voice stops working,
+check the server's `/v1/models` endpoint for the correct model id and list available
+voices via `/v1/voices` (or your server's equivalent). Update `AUDIO_FEEDBACK_VOICE_MODEL`
+and `AUDIO_FEEDBACK_VOICE_NAME` accordingly.
+
+Minimum recommended version: **v0.4.2**.
+
 ## Available Kokoro Voices
 
-Common voice options for `AUDIO_FEEDBACK_VOICE_NAME`:
+Common voice options for `AUDIO_FEEDBACK_VOICE_NAME` (v0.4.x):
 - `af_heart` - Female, warm (default)
 - `af_bella` - Female, professional
 - `am_adam` - Male, neutral
 - `am_michael` - Male, authoritative
 
-Check your Kokoro TTS server for all available voices.
+Check your Kokoro TTS server for all available voices (`curl ${KOKORO_TTS_URL:-http://localhost:8880}/v1/voices`).
 
 ## Platform Support
 

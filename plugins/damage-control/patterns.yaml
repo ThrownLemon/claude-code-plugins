@@ -292,6 +292,25 @@ bashToolPatterns:
   - pattern: '\bgh\s+repo\s+delete\b'
     reason: gh repo delete (deletes repository)
 
+  # REMOTE CODE EXECUTION (RCE) PATTERNS
+  - pattern: '\bcurl\b.*\|\s*(bash|sh|zsh|ksh|dash)\b'
+    reason: curl piped to shell (RCE via remote script)
+
+  - pattern: '\bwget\b.*\|\s*(bash|sh|zsh|ksh|dash)\b'
+    reason: wget piped to shell (RCE via remote script)
+
+  - pattern: '\bcurl\b.*\|\s*sudo\s+(bash|sh|zsh)\b'
+    reason: curl piped to sudo shell (RCE with elevated privileges)
+
+  - pattern: '\bwget\b.*\|\s*sudo\s+(bash|sh|zsh)\b'
+    reason: wget piped to sudo shell (RCE with elevated privileges)
+
+  - pattern: '\bbase64\s+(-d|--decode)\b.*\|\s*(bash|sh|zsh|ksh|dash)\b'
+    reason: base64-decode piped to shell (obfuscated RCE)
+
+  - pattern: '\becho\s+.*\|\s*base64\s+(-d|--decode)\b.*\|\s*(bash|sh|zsh|ksh|dash)\b'
+    reason: echo | base64 decode | shell (obfuscated RCE)
+
   # SHELL WRAPPER BYPASS DETECTION
   # Catches attempts to bypass patterns via shell wrappers
   - pattern: '\b(bash|sh|zsh|ksh|dash)\s+(-[^\s]*\s+)*-c\s+[''"].*\b(rm|chmod|chown|dd|mkfs|shred|kill|truncate)\b'

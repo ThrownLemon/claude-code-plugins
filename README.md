@@ -55,7 +55,7 @@ Plugins work in different ways:
 | [imagegen](#imagegen) | AI image generation with Google Gemini and OpenAI |
 | [ui-ux-pro-max](#uiux-pro-max) | Searchable database of UI/UX design intelligence |
 | [gmcli](#gmail-cli) | Gmail integration for terminal-based email management |
-| [consult](#consult) | Third-opinion AI consultation via z.ai (GLM-4.6) and Gemini — second opinions, reviews, optional stop-gate hook |
+| [consult](#consult) | Third-opinion AI consultation via z.ai (GLM-5.2) and Gemini — second opinions, reviews, optional stop-gate hook |
 | [cloudflare](#cloudflare) | Cloudflare management via the cf CLI — DNS, tunnels, zones, cache purge, zero-trust diagnostics |
 | [bambu](#bambu) | Bambu Lab X1Plus 3D printer control — status, send prints, calibration, filament, diagnostics |
 | [unifi](#unifi) | UniFi network management — sites, clients, devices, port forwards, troubleshooter agent |
@@ -673,7 +673,7 @@ Handles all email operations:
 
 ### Consult
 
-**Description**: Third-opinion AI consultation. Calls **Z.AI (GLM-4.6)** or **Google Gemini** directly via API for second opinions, code reviews, and an optional stop-gate review hook.
+**Description**: Third-opinion AI consultation. Calls **Z.AI (GLM-5.2)** or **Google Gemini** directly via API for second opinions, code reviews, and an optional stop-gate review hook.
 
 Use it the same way you'd use the codex plugin's `/codex:rescue` — except the rescuer is a different model family, and there's nothing to install beyond an API key. No external CLI binary required (uses Node 18+ `fetch`).
 

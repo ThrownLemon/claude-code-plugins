@@ -160,7 +160,21 @@
     },
     "custom_command": {
       "enabled": false,
-      "command": ""
+      "command": "",
+      "_security_note": "WARNING: custom_command executes shell commands. It is disabled by default. Only enable with explicitly whitelisted, trusted commands. See allowed_commands."
+    },
+    "effort_level": {
+      "enabled": false,
+      "icon": "⚡"
+    },
+    "thinking_enabled": {
+      "enabled": false,
+      "icon_on": "🧠",
+      "icon_off": ""
+    },
+    "rate_limit_percent": {
+      "enabled": false,
+      "icon": "🚦"
     },
     "separator": {
       "char": " │ ",

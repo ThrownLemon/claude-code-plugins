@@ -17,6 +17,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+# Ensure this script's directory is on sys.path so sibling modules resolve
+# correctly regardless of the working directory the caller uses.
+sys.path.insert(0, str(Path(__file__).parent))
+
 from cli_configs import CLI_CONFIGS, get_model
 
 
@@ -104,12 +108,18 @@ def build_cli_command(cli: str, prompt_file: Path, output_file: Path) -> str:
         # Claude: use -p for prompt, --dangerously-skip-permissions for non-interactive
         cmd = f'claude --model {safe_model} --dangerously-skip-permissions -p {prompt_ref} 2>&1 | tee {safe_output_file}'
     elif cli == "gemini":
-        # Gemini: prompt as positional arg after flags, -y for auto-accept
-        cmd = f'gemini --model {safe_model} -y {prompt_ref} 2>&1 | tee {safe_output_file}'
+        # Gemini: use -p/--prompt for headless (non-interactive) runs; -y auto-accepts
+        cmd = f'gemini --model {safe_model} -y -p {prompt_ref} 2>&1 | tee {safe_output_file}'
     elif cli == "codex":
-        # Codex: requires PTY for interactive UI
-        # Use script command to provide pseudo-terminal
-        cmd = f'script -q {safe_output_file} codex --model {safe_model} --dangerously-bypass-approvals-and-sandbox {prompt_ref}'
+        # codex exec is the non-interactive subcommand (codex 0.139+).
+        # Default to --sandbox read-only (code review never needs writes).
+        # Set MULTI_REVIEW_CODEX_UNSAFE=1 to opt in to bypass mode.
+        if os.environ.get("MULTI_REVIEW_CODEX_UNSAFE") == "1":
+            sandbox_flags = "--dangerously-bypass-approvals-and-sandbox"
+        else:
+            sandbox_flags = "--sandbox read-only"
+        # codex exec takes the prompt POSITIONALLY (no -p); -m sets the model.
+        cmd = f'script -q {safe_output_file} codex exec -m {safe_model} {sandbox_flags} {prompt_ref}'
     else:
         raise ValueError(f"Unknown CLI: {cli}")
 

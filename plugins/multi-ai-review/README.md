@@ -97,7 +97,7 @@ Set via environment variables:
 | `MULTI_REVIEW_TIMEOUT` | `10` | Minutes per CLI |
 | `MULTI_REVIEW_CLIS` | `claude,gemini,codex` | Default CLIs |
 | `MULTI_REVIEW_CLAUDE_MODEL` | `opus` | Claude model |
-| `MULTI_REVIEW_GEMINI_MODEL` | `gemini-3-pro-preview` | Gemini model |
+| `MULTI_REVIEW_GEMINI_MODEL` | `gemini-pro-latest` | Gemini model |
 | `MULTI_REVIEW_CODEX_MODEL` | `gpt-5.2-codex` | Codex model |
 | `MULTI_REVIEW_OUTPUT_DIR` | `~/.multi-ai-review` | Results directory |
 

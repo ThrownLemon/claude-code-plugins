@@ -322,7 +322,7 @@ def main():
         if provider == "google":
             model = "gemini-3-pro-image-preview"  # Better for consistency
         else:
-            model = "gpt-image-1"
+            model = "gpt-image-2"
 
     # Reference image
     reference_path = Path(args.reference) if args.reference else None

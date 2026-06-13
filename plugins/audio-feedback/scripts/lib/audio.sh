@@ -145,10 +145,10 @@ speak_tts() {
 # Check if sound playback should be debounced
 # Args: $1 = lock name (e.g., "tool-complete")
 # Returns: 0 if should play, 1 if should skip (debounced)
+# Debounce window: 1 second (lock file mtime gate)
 should_play_sound() {
     local lock_name="$1"
     local lock_file="/tmp/audio-feedback-${lock_name}.lock"
-    local debounce_ms=100  # 100ms debounce
 
     # Check if lock exists and is recent
     if [ -f "$lock_file" ]; then

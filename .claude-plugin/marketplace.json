@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "travis-plugins",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "ThrownLemon's Claude Code plugin marketplace - code quality, productivity, and development tools",
   "owner": {
     "name": "ThrownLemon"
@@ -10,7 +10,7 @@
     {
       "name": "coderabbit",
       "description": "CodeRabbit integration - local code review and PR comment management using CodeRabbit CLI",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "ThrownLemon"
       },
@@ -20,7 +20,7 @@
     {
       "name": "damage-control",
       "description": "Security protection - blocks dangerous commands and protects sensitive files via PreToolUse hooks",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "ThrownLemon (adapted from disler/claude-code-damage-control)"
       },
@@ -30,7 +30,7 @@
     {
       "name": "fork-terminal",
       "description": "Fork terminal sessions to spawn parallel AI agents (Claude Code, Codex CLI, Gemini CLI) in new terminal windows. Supports git worktrees for isolated parallel development with tmux integration.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "author": {
         "name": "ThrownLemon (adapted from disler/fork-repository-skill)"
       },
@@ -40,7 +40,7 @@
     {
       "name": "imagegen",
       "description": "AI image generation using Google Gemini (Imagen) and OpenAI GPT-Image - generate, edit, iterate, moodboards, character sheets, and project assets",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "ThrownLemon"
       },
@@ -50,7 +50,7 @@
     {
       "name": "ui-ux-pro-max",
       "description": "UI/UX design intelligence - 57 styles, 96 color palettes, 50 font pairings, 25 chart types, 11 tech stacks. Searchable database of design best practices.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "ThrownLemon (adapted from nextlevelbuilder/ui-ux-pro-max-skill)"
       },
@@ -60,7 +60,7 @@
     {
       "name": "gmcli",
       "description": "Gmail CLI integration - search, read, send, and manage emails from the terminal using gmcli",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "ThrownLemon"
       },
@@ -70,7 +70,7 @@
     {
       "name": "audio-feedback",
       "description": "Audio feedback for Claude Code - sound effects and voice announcements via Kokoro TTS for session events, tool completions, and task notifications",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "ThrownLemon"
       },
@@ -80,7 +80,7 @@
     {
       "name": "video-gen",
       "description": "AI video generation using Google Veo and OpenAI Sora - generate videos from text prompts with smart model routing",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "ThrownLemon"
       },
@@ -90,7 +90,7 @@
     {
       "name": "multi-ai-review",
       "description": "Multi-AI code review - run parallel reviews with Claude, Gemini, and Codex CLIs, then compare findings for consensus analysis",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "ThrownLemon"
       },
@@ -99,8 +99,8 @@
     },
     {
       "name": "consult",
-      "description": "Third-opinion AI consultation - ask z.ai (GLM-4.6) or Gemini for second opinions, code reviews, and optional stop-gate review. Direct API, no extra CLIs required.",
-      "version": "1.0.0",
+      "description": "Third-opinion AI consultation - ask z.ai (GLM-5.2) or Gemini for second opinions, code reviews, and optional stop-gate review. Direct API, no extra CLIs required.",
+      "version": "1.2.0",
       "author": {
         "name": "ThrownLemon"
       },
@@ -110,7 +110,7 @@
     {
       "name": "cloudflare",
       "description": "Cloudflare management via the cf CLI - DNS, tunnels, zones, cache purge, zero-trust diagnostics. Auto-triggered skill, slash commands, and a diagnostician agent.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "ThrownLemon"
       },
@@ -119,8 +119,8 @@
     },
     {
       "name": "bambu",
-      "description": "Control Bambu Lab X1Plus 3D printers via the bambu CLI \u2014 status, send prints, calibration, filament management, and diagnostics with safety confirmations on destructive ops.",
-      "version": "1.0.0",
+      "description": "Control Bambu Lab X1Plus 3D printers via the bambu CLI — status, send prints, calibration, filament management, and diagnostics with safety confirmations on destructive ops.",
+      "version": "1.1.0",
       "author": {
         "name": "ThrownLemon"
       },
@@ -129,8 +129,8 @@
     },
     {
       "name": "unifi",
-      "description": "Manage UniFi network devices via the unifi CLI \u2014 sites, clients, devices, port forwards, DPI stats. Includes troubleshooter agent for diagnosing wifi/client/device issues.",
-      "version": "1.0.0",
+      "description": "Manage UniFi network devices via the unifi CLI — sites, clients, devices, port forwards, DPI stats. Includes troubleshooter agent for diagnosing wifi/client/device issues.",
+      "version": "1.1.0",
       "author": {
         "name": "ThrownLemon"
       },
@@ -140,7 +140,7 @@
     {
       "name": "ultimate-statusline",
       "description": "Ultimate statusline for Claude Code - 30+ widgets including model info, git status, context usage, costs, burn rate, MCP status, and more with customizable themes",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "ThrownLemon"
       },

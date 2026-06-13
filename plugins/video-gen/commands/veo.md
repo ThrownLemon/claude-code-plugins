@@ -14,7 +14,7 @@ arguments:
     description: "Video resolution: 720p, 1080p, or 4k (default: 1080p)"
     required: false
   - name: model
-    description: "Veo model: veo-3.1-generate-preview, veo-3.1-fast-generate-preview, veo-2.0-generate-001"
+    description: "Veo model: veo-3.1-generate-preview, veo-3.1-fast-generate-preview, veo-3.1-lite-generate-preview, veo-2.0-generate-001"
     required: false
   - name: negative
     description: Negative prompt - things to avoid in the video
@@ -66,6 +66,7 @@ This command delegates to the `video-generator` subagent with Veo-specific optio
 
 - **veo-3.1-generate-preview** - Latest model, best quality (default; preview)
 - **veo-3.1-fast-generate-preview** - Faster generation, good quality (preview)
+- **veo-3.1-lite-generate-preview** - Lightweight preview model
 - **veo-3.0-generate-001** - Stable, with audio (recommended for production)
 - **veo-3.0-fast-generate-001** - Stable fast variant, with audio
 - **veo-2.0-generate-001** - Previous generation, stable, silent video

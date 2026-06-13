@@ -8,7 +8,7 @@ arguments:
     description: "Video duration in seconds: 4, 8, or 12 (default: 8)"
     required: false
   - name: aspect
-    description: "Aspect ratio: 16:9, 9:16, or 1:1 (default: 16:9)"
+    description: "Aspect ratio: 16:9 or 9:16 (default: 16:9) — 1:1 is not supported by the Sora API"
     required: false
   - name: model
     description: "Sora model: sora-2 or sora-2-pro (default: sora-2)"
@@ -75,9 +75,9 @@ This command delegates to the `video-generator` subagent with Sora-specific opti
   - `8` - Standard (default)
   - `12` - Extended (Sora exclusive)
 - **aspect**: Aspect ratio (maps to API `size` field)
-  - `16:9` - Landscape 1920x1080 (default)
-  - `9:16` - Portrait 1080x1920
-  - `1:1` - Square 1080x1080
+  - `16:9` - Landscape 1280x720 (default)
+  - `9:16` - Portrait 720x1280
+  - Note: `1:1` (square) is not supported by the Sora API and will produce an error
 - **model**: Sora model to use
 - **image**: Reference image for guidance (uploaded as `input_reference`)
 - **output**: Save path for video file

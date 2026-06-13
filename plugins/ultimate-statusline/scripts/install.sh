@@ -110,6 +110,14 @@ echo ""
 # Step 4: Update Claude Code settings
 echo -e "${BLUE}Updating Claude Code settings...${NC}"
 
+# Helper: write updated settings atomically, always taking a timestamped backup first
+_update_settings() {
+  local backup_file="${SETTINGS_FILE}.bak.$(date +%Y%m%d%H%M%S)"
+  cp "$SETTINGS_FILE" "$backup_file"
+  echo -e "${BLUE}Backed up settings.json → $backup_file${NC}"
+  jq --arg script "$STATUSLINE_SCRIPT" '.statusLine = {"type": "command", "command": $script, "padding": 0}' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
+}
+
 if [[ -f "$SETTINGS_FILE" ]]; then
   # Check if statusLine already exists
   if jq -e '.statusLine' "$SETTINGS_FILE" &>/dev/null; then
@@ -119,18 +127,18 @@ if [[ -f "$SETTINGS_FILE" ]]; then
       read -p "Update to use ultimate-statusline? [Y/n] " -n 1 -r
       echo
       if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-        jq --arg script "$STATUSLINE_SCRIPT" '.statusLine = {"type": "command", "command": $script, "padding": 0}' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
+        _update_settings
         echo -e "${GREEN}Updated statusLine configuration${NC}"
       else
         echo -e "${BLUE}Keeping existing statusLine configuration${NC}"
       fi
     else
-      # Non-interactive: update by default
-      jq --arg script "$STATUSLINE_SCRIPT" '.statusLine = {"type": "command", "command": $script, "padding": 0}' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
-      echo -e "${GREEN}Updated statusLine configuration${NC}"
+      # Non-interactive: warn and skip rather than silently overwrite
+      echo -e "${YELLOW}Non-interactive mode: existing statusLine detected — skipping overwrite.${NC}"
+      echo -e "${YELLOW}Re-run interactively or remove the statusLine key from $SETTINGS_FILE first.${NC}"
     fi
   else
-    jq --arg script "$STATUSLINE_SCRIPT" '.statusLine = {"type": "command", "command": $script, "padding": 0}' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
+    _update_settings
     echo -e "${GREEN}Added statusLine to settings.json${NC}"
   fi
 else

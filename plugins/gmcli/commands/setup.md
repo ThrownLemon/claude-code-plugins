@@ -95,8 +95,18 @@ Remove a Gmail account from gmcli configuration.
 
 gmcli stores all data in `~/.gmcli/`:
 - `credentials.json` - OAuth2 client credentials
-- `accounts/` - Per-account tokens
+- `accounts/` - Per-account tokens (OAuth refresh tokens at rest)
 - `attachments/` - Downloaded attachments
+
+**Restrict permissions on the storage directory** — it contains OAuth refresh tokens that grant long-lived access to your Gmail:
+
+```bash
+chmod 700 ~/.gmcli/
+chmod 600 ~/.gmcli/credentials.json
+chmod 600 ~/.gmcli/accounts/* 2>/dev/null || true
+```
+
+Run these after setup and after adding each account.
 
 Use the `gmail-assistant` subagent to handle setup. Pass the arguments:
 - action: $ARGUMENTS.action or "status"

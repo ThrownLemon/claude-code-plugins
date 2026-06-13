@@ -136,10 +136,18 @@ gmcli draft edit <draft_id> [--to "<to>"] [--subject "<subject>"] [--body "<body
 gmcli draft delete <draft_id> [--account <email>]
 ```
 
+Before deleting, always confirm:
+> About to permanently delete draft `<draft_id>`. This cannot be undone.
+> Proceed? (yes / no)
+
 **Send draft:**
 ```bash
 gmcli draft send <draft_id> [--account <email>]
 ```
+
+Before sending, always confirm:
+> About to send draft `<draft_id>`. Once sent it cannot be recalled.
+> Proceed? (yes / no)
 
 ### Label Operations (action: labels)
 
@@ -157,6 +165,10 @@ gmcli label add <thread_id> "<label1,label2>" [--account <email>]
 ```bash
 gmcli label remove <thread_id> "<label1,label2>" [--account <email>]
 ```
+
+Before removing labels, always confirm:
+> About to remove label(s) `<labels>` from thread `<thread_id>`.
+> Proceed? (yes / no)
 
 ### Setup Operations
 
@@ -184,6 +196,13 @@ Guide the user through:
 gmcli accounts add
 ```
 This opens a browser for OAuth authentication.
+
+After adding an account, restrict permissions on the storage directory (it contains OAuth refresh tokens at rest):
+```bash
+chmod 700 ~/.gmcli/
+chmod 600 ~/.gmcli/credentials.json
+chmod 600 ~/.gmcli/accounts/* 2>/dev/null || true
+```
 
 **List accounts:**
 ```bash

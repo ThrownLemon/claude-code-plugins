@@ -13,6 +13,10 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Optional
 
+# Ensure this script's directory is on sys.path so sibling modules resolve
+# correctly regardless of the working directory the caller uses.
+sys.path.insert(0, str(Path(__file__).parent))
+
 from result_parser import parse_cli_output
 
 # Pre-computed stop words set (created once, not per call)

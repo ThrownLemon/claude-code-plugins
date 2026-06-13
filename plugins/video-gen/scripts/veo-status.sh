@@ -79,8 +79,30 @@ fi
 # API endpoint
 API_BASE="https://generativelanguage.googleapis.com/v1beta"
 
+# Retry-with-backoff helper: 3 attempts, exponential delay (2s, 4s)
+# Retries on HTTP 429/5xx (detected by .error.code in JSON response)
+_http_retry() {
+    local _attempt=1 _max=3 _delay=2 _resp
+    while [ "$_attempt" -le "$_max" ]; do
+        _resp=$(curl -sS --connect-timeout 30 --max-time 60 "$@")
+        local _code
+        _code=$(echo "$_resp" | jq -r '.error.code // empty' 2>/dev/null)
+        if [ -z "$_code" ] || { [ "$_code" -ne 429 ] 2>/dev/null && [ "$_code" -lt 500 ] 2>/dev/null; }; then
+            echo "$_resp"
+            return 0
+        fi
+        if [ "$_attempt" -lt "$_max" ]; then
+            echo "Warning: HTTP $_code — retrying in ${_delay}s (attempt $_attempt/$_max)..." >&2
+            sleep "$_delay"
+            _delay=$(( _delay * 2 ))
+        fi
+        _attempt=$(( _attempt + 1 ))
+    done
+    echo "$_resp"
+}
+
 # Get operation status
-RESPONSE=$(curl -sS --connect-timeout 30 --max-time 60 -X GET \
+RESPONSE=$(_http_retry -X GET \
     "${API_BASE}/${OPERATION_ID}" \
     -H "x-goog-api-key: ${API_KEY}")
 

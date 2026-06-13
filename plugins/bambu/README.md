@@ -6,10 +6,12 @@ Control your **Bambu Lab X1Plus 3D printer** from Claude Code using the [`bambu`
 
 | Requirement | Install |
 |---|---|
-| **bambu CLI** on PATH | `bun install -g bambulabs-cli` (see [repo](https://github.com/ThrownLemon/bambulabs-cli)) |
-| **sshpass** | `brew install hudochenkov/sshpass/sshpass` · `apt install sshpass` |
+| **bambu CLI** on PATH | `bun install -g bambulabs-cli` — installs as the `bambu` command (see [repo](https://github.com/ThrownLemon/bambulabs-cli)) |
+| **sshpass** *(see note below)* | `brew install hudochenkov/sshpass/sshpass` · `apt install sshpass` |
 | OrcaSlicer *(optional)* | for slicing .3mf → .gcode before sending |
 | ffmpeg *(optional)* | for camera / timelapse features |
+
+> **sshpass security note:** `sshpass` passes the SSH password via a command-line argument or environment variable, which makes it visible to other processes via `ps` and in shell history. Prefer SSH key authentication for the printer where possible — copy your public key to the printer and remove `printer.ssh.password` from the config. If you cannot use keys, store the password via the interactive `read` method shown in Configuration (never hardcode it), and be aware that `sshpass` inherently reduces the security of passwordless login prompts.
 
 ## Installation
 

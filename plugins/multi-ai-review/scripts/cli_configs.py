@@ -39,10 +39,10 @@ except ImportError:
         },
         "gemini": {
             "command": "gemini",
-            "default_model": "gemini-3-pro-preview",
-            "fast_model": "gemini-3-flash-preview",
+            "default_model": "gemini-pro-latest",
+            "fast_model": "gemini-flash-latest",
             "env_model": "MULTI_REVIEW_GEMINI_MODEL",
-            "prompt_flag": None,
+            "prompt_flag": "-p",
             "model_flag": "--model",
             "auto_flags": ["-y"],
             "install_cmd": "npm install -g @google/gemini-cli",
@@ -50,12 +50,16 @@ except ImportError:
         },
         "codex": {
             "command": "codex",
+            # codex exec is the non-interactive subcommand (codex 0.139+). It
+            # takes the prompt POSITIONALLY (no -p) and the model via -m AFTER
+            # the subcommand. sandbox read-only is right for review (no writes).
+            "subcommand": "exec",
             "default_model": "gpt-5.2-codex",
             "fast_model": "gpt-5.1-codex-mini",
             "env_model": "MULTI_REVIEW_CODEX_MODEL",
             "prompt_flag": None,
-            "model_flag": "--model",
-            "auto_flags": ["--full-auto"],
+            "model_flag": "-m",
+            "auto_flags": ["--sandbox", "read-only"],
             "install_cmd": "npm install -g @openai/codex",
             "check_cmd": "which codex"
         }
@@ -76,6 +80,11 @@ except ImportError:
 
         model = model or get_model(cli)
         cmd = [config["command"]]
+
+        # Subcommand (e.g. codex `exec`) must come immediately after the binary
+        # and before any options/model flag.
+        if config.get("subcommand"):
+            cmd.append(config["subcommand"])
 
         if config["model_flag"]:
             cmd.extend([config["model_flag"], model])

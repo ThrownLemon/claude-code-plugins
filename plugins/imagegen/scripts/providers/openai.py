@@ -45,7 +45,10 @@ except ImportError:
 
             # Try to resolve and check if it's a private IP
             try:
-                # Resolve hostname to IP
+                # Resolve hostname to IP.
+                # NOTE: TOCTOU — DNS may resolve differently between this check
+                # and the actual connection (DNS rebinding). A full fix requires
+                # binding the resolved IP directly; left as a known limitation.
                 ip_str = socket.gethostbyname(host)
                 ip = ipaddress.ip_address(ip_str)
 
@@ -132,6 +135,14 @@ class OpenAIProvider(ImageProvider):
             # GPT-Image specific parameters
             if self.model.startswith("gpt-image"):
                 params["quality"] = quality
+                # gpt-image-2 does not support background=transparent; only "opaque" or "auto".
+                # Reject early with a clear message rather than letting the API 400.
+                if background == "transparent" and self.model == "gpt-image-2":
+                    return self._error(
+                        "gpt-image-2 does not support background=transparent. "
+                        "Use --model gpt-image-1 (or gpt-image-1.5) to generate "
+                        "images with transparent backgrounds."
+                    )
                 if background != "auto":
                     params["background"] = background
 
@@ -202,12 +213,19 @@ class OpenAIProvider(ImageProvider):
         if not image_path.exists():
             return self._error(f"Source image not found: {image_path}")
 
+        # gpt-image-2 is a generations-only model; the edits endpoint rejects it.
+        # Fall back to gpt-image-1.5 (which supports the edits endpoint) so the
+        # caller gets a useful result rather than an opaque 400.
+        edit_model = self.model
+        if edit_model == "gpt-image-2":
+            edit_model = "gpt-image-1.5"
+
         try:
             client = self._get_client()
 
             # Prepare edit parameters
             edit_params = {
-                "model": self.model,
+                "model": edit_model,
                 "prompt": prompt,
                 "n": 1,
                 "size": size

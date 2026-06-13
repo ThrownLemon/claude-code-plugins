@@ -19,6 +19,7 @@ set -eo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/config.sh"
+source "$SCRIPT_DIR/lib/cache.sh"
 source "$SCRIPT_DIR/lib/widgets.sh"
 
 # Read JSON input from stdin

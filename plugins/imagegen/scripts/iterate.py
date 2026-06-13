@@ -196,7 +196,7 @@ def main():
         provider_config = config.get(provider_name, {})
         model = args.model or provider_config.get("model")
         if not model:
-            model = "gemini-2.5-flash-image" if provider_name == "google" else "gpt-image-1"
+            model = "gemini-2.5-flash-image" if provider_name == "google" else "gpt-image-2"
 
         session = create_session(image_path, args.prompt, provider_name, model)
         print(f"Created new session: {session['id']}")
