@@ -907,6 +907,19 @@ Commit, push, and create a PR.
 
 ---
 
+## Maintenance
+
+AI model ids go stale quickly. [`tools/check-models`](./tools/check-models) discovers every model id used across the repo, queries each provider's live `/models` endpoint, and flags stale ids while surfacing newer ones:
+
+```bash
+node tools/check-models/check-models.mjs            # all providers with a key set
+node tools/check-models/check-models.mjs --provider zai --json
+```
+
+A weekly GitHub Action (`.github/workflows/check-models.yml`) runs it automatically and posts the report to the workflow summary — add `ZAI_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` as repo secrets to enable each provider.
+
+---
+
 ## FAQ
 
 **Q: How do I see what plugins are installed?**
